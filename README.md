@@ -98,7 +98,7 @@ BacSeq-v2/
 ### 1. Clone BacSeq v2
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/BacSeq-v2.git
+git clone https://github.com/komwits-dev/BacSeq2.git
 cd BacSeq-v2
 ```
 
