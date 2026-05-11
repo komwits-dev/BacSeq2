@@ -1,0 +1,52 @@
+# BacSeq v2 configuration template
+# Copy this file to config/config.yaml and edit only the input/output settings.
+
+# Input/output
+input_dir: "fastq"
+output_dir: "results"
+mode: "short"         # short, long, or hybrid
+threads: 8
+memory_gb: 32
+
+# Database profile
+# minimal  = testing only
+# standard = routine bacterial WGS
+# full     = publication-level annotation
+# Paths below are automatically updated by: bacseq setup-db
+database_dir: "~/bacseq_db"
+database_profile: "standard"
+
+# Automatically managed database paths
+mash_db: "~/bacseq_db/mash/bacseq_refseq.msh"
+gtdbtk_data: "~/bacseq_db/gtdbtk/gtdbtk_data"
+kraken2_db: "~/bacseq_db/kraken2/standard"
+kraken2_pluspf_db: "~/bacseq_db/kraken2/pluspf"
+taxdump_dir: "~/bacseq_db/taxdump"
+busco_db_path: "auto"
+eggnog_db: "~/bacseq_db/eggnog"
+cazyme_db: "~/bacseq_db/dbcan"
+phastest_db: "~/bacseq_db/phastest"
+vfdb_path: "~/bacseq_db/vfdb/VFDB_setB_pro.fas"
+plasmidfinder_db: "~/bacseq_db/plasmidfinder"
+amrfinder_db: "~/bacseq_db/amrfinderplus"
+
+# Module switches
+run_species: true
+run_decontam_screen: true
+run_auto_decontam: false   # recommended default: false; review first
+run_annotation: true
+run_amr: true
+run_mlst: true
+run_plasmid: true
+run_virulence: true
+run_mge: true
+run_prophage: false
+run_cazyme: false
+run_comparative: false
+
+# Decontamination policy
+# review_only: generate candidate contaminants and plots but do not remove contigs
+# strict: remove only high-confidence contaminants and keep quarantine FASTA
+contamination_policy: "review_only"
+minimum_contig_length: 500
+minimum_contaminant_confidence: 0.90

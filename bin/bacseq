@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# BacSeq v2 command-line launcher
+# This lightweight wrapper is designed for GitHub releases and later Bioconda packaging.
+
+BACSEQ_ROOT="${BACSEQ_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+DEFAULT_CONFIG="$BACSEQ_ROOT/config/config.yaml"
+TEMPLATE_CONFIG="$BACSEQ_ROOT/config/config.template.yaml"
+
+usage() {
+  cat <<EOF
+BacSeq v2 launcher
+
+Usage:
+  bacseq <command> [options]
+
+Commands:
+  init        Create a config/config.yaml from the template
+  setup-db    Download/build databases and update config paths
+  check-db    Check database paths in config.yaml
+  run         Run the Snakemake workflow
+  dry-run     Test the Snakemake workflow without running jobs
+  help        Show this help message
+
+Examples:
+  bacseq init
+  bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16
+  bacseq dry-run --config config/config.yaml --cores 16
+  bacseq run --config config/config.yaml --cores 16
+EOF
+}
+
+cmd_init() {
+  local out="config/config.yaml"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --out|--config) out="$2"; shift 2 ;;
+      -h|--help) echo "Usage: bacseq init [--out config/config.yaml]"; exit 0 ;;
+      *) echo "Unknown option for init: $1" >&2; exit 1 ;;
+    esac
+  done
+  mkdir -p "$(dirname "$out")"
+  if [[ -f "$out" ]]; then
+    echo "Config already exists: $out"
+    echo "Not overwriting. Delete it first or choose --out."
+    exit 1
+  fi
+  if [[ -f "$TEMPLATE_CONFIG" ]]; then
+    cp "$TEMPLATE_CONFIG" "$out"
+  else
+    cat > "$out" <<'EOF'
+input_dir: "fastq"
+output_dir: "results"
+mode: "short"
+threads: 8
+memory_gb: 32
+database_dir: "~/bacseq_db"
+database_profile: "standard"
+EOF
+  fi
+  echo "Created config: $out"
+}
+
+cmd_setup_db() {
+  bash "$BACSEQ_ROOT/scripts/setup_databases.sh" "$@"
+}
+
+cmd_check_db() {
+  local config="$DEFAULT_CONFIG"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --config) config="$2"; shift 2 ;;
+      -h|--help) echo "Usage: bacseq check-db [--config config/config.yaml]"; exit 0 ;;
+      *) echo "Unknown option for check-db: $1" >&2; exit 1 ;;
+    esac
+  done
+  python3 "$BACSEQ_ROOT/scripts/check_databases.py" --config "$config"
+}
+
+cmd_snakemake() {
+  local mode="$1"; shift
+  local config="$DEFAULT_CONFIG"
+  local cores=8
+  local extra=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --config) config="$2"; shift 2 ;;
+      --cores|--threads) cores="$2"; shift 2 ;;
+      *) extra+=("$1"); shift ;;
+    esac
+  done
+  if ! command -v snakemake >/dev/null 2>&1; then
+    echo "ERROR: snakemake not found. Activate the BacSeq conda environment first." >&2
+    exit 1
+  fi
+  local dry=""
+  if [[ "$mode" == "dry-run" ]]; then
+    dry="--dry-run"
+  fi
+  snakemake \
+    --snakefile "$BACSEQ_ROOT/Snakefile" \
+    --configfile "$config" \
+    --cores "$cores" \
+    --use-conda \
+    --rerun-incomplete \
+    $dry \
+    "${extra[@]}"
+}
+
+case "${1:-help}" in
+  init) shift; cmd_init "$@" ;;
+  setup-db) shift; cmd_setup_db "$@" ;;
+  check-db) shift; cmd_check_db "$@" ;;
+  run) shift; cmd_snakemake run "$@" ;;
+  dry-run) shift; cmd_snakemake dry-run "$@" ;;
+  help|-h|--help) usage ;;
+  *) echo "Unknown command: ${1:-}" >&2; usage; exit 1 ;;
+esac

@@ -1,0 +1,20 @@
+name: bacseq_v2_core
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+dependencies:
+  - python=3.11
+  - snakemake>=8
+  - mamba
+  - pandas
+  - pyyaml
+  - jinja2
+  - biopython
+  - plotly
+  - openpyxl
+  - wget
+  - curl
+  - aria2
+  - tar
