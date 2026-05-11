@@ -1,93 +1,140 @@
-# BacSeq v2
-
 <p align="center">
-  <img src="docs/assets/bacseq_v2_workflow.png" alt="BacSeq v2 workflow" width="100%">
+  <h1 align="center">BacSeq v2</h1>
+  <p align="center">
+    <b>Automated bacterial whole-genome sequencing analysis with species identification, contamination screening, AMR profiling, and interactive HTML reporting.</b>
+  </p>
 </p>
 
-<h2 align="center">Automated bacterial whole-genome sequencing analysis with review-first contamination screening and interactive reporting</h2>
-
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-v2.0-1f7a60?style=for-the-badge">
-  <img alt="workflow" src="https://img.shields.io/badge/workflow-Snakemake-0ca6df?style=for-the-badge">
-  <img alt="species" src="https://img.shields.io/badge/species-Mash%20%2B%20GTDB--Tk-087f78?style=for-the-badge">
-  <img alt="platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20HPC-7950f2?style=for-the-badge">
-  <img alt="license" src="https://img.shields.io/badge/license-MIT-8ac926?style=for-the-badge">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20HPC-blue">
+  <img alt="Workflow" src="https://img.shields.io/badge/workflow-Snakemake-green">
+  <img alt="Package" src="https://img.shields.io/badge/install-Conda%20%7C%20Mamba-orange">
+  <img alt="Status" src="https://img.shields.io/badge/status-v2%20prototype-purple">
 </p>
 
 ---
 
-## Why BacSeq v2?
+## Overview
 
-**BacSeq v2** is a modular bacterial genome analysis workflow designed to transform raw bacterial WGS reads into a clear, reproducible, and shareable genome interpretation report.
+**BacSeq v2** is a modular bacterial genome analysis workflow designed for routine bacterial whole-genome sequencing, research-grade genome characterization, and publication-ready reporting.
 
-The core idea is simple:
+The major goals of BacSeq v2 are:
 
-> **Identify the species first, screen contamination before interpretation, then generate an interactive report that researchers and clinicians can easily review.**
+- **Identify species before interpretation** using fast read-level screening and genome-level classification.
+- **Detect possible contamination** before downstream analysis.
+- **Generate a clear single-sample report** that can be shared with collaborators or clinicians.
+- **Use Snakemake as the workflow engine** for resumability, reproducibility, and parallel execution.
+- **Keep the user interface simple** through a lightweight `bacseq` launcher.
 
-BacSeq v2 is especially suitable for bacterial isolate WGS projects involving species confirmation, assembly quality assessment, AMR gene screening, plasmid/virulence marker detection, MLST, and publication-ready genome summaries.
-
-> **Important:** BacSeq v2 provides genomic interpretation only. AMR results should not replace phenotypic antimicrobial susceptibility testing or local clinical decision-making.
+> **Important:** BacSeq v2 is currently designed as a research and development workflow. Genomic AMR results should not be used as the sole basis for clinical treatment decisions without phenotypic AST and local clinical interpretation.
 
 ---
 
 ## Key features
 
-| Feature | Description |
+| Module | Purpose |
 |---|---|
-| **Species-first analysis** | Rapid Mash pre-check followed by GTDB-Tk genome-level classification |
-| **Review-first contamination screening** | Candidate contaminant contigs are reported before any removal decision |
-| **Flexible assembly mode** | Supports short-read, long-read, and hybrid assembly design |
-| **Genome quality summary** | Assembly metrics, completeness, contamination indicators, and quality flags |
-| **Annotation and feature profiling** | Prokka/functional annotation, AMR, MLST, plasmid, virulence, MGE, prophage, and optional CAZyme modules |
-| **Interactive HTML report** | Shareable project-level report with summary cards, plots, and result tables |
-| **Snakemake backend** | Reproducible, resumable, and scalable execution on workstation or HPC |
-| **Automatic database setup** | `bacseq setup-db` prepares paths and database profiles for users |
+| Read QC | FASTQ quality control, adapter trimming, and summary reports |
+| Genome assembly | Short-read, long-read, or hybrid bacterial genome assembly |
+| Species identification | Rapid Mash pre-check and genome-based GTDB-Tk classification |
+| Contamination screening | Candidate contaminant detection with a review-first policy |
+| Assembly QC | QUAST/BUSCO-based genome quality summary |
+| Annotation | Structural and functional genome annotation |
+| AMR profiling | Detection of antimicrobial resistance genes and mutations |
+| Typing | MLST and optional species-specific typing modules |
+| Plasmid/virulence/MGE screening | Detection of plasmid markers, virulence genes, and mobile genetic elements |
+| HTML report | Interactive and portable report for each isolate/project |
 
 ---
 
-## Workflow overview
+## How BacSeq v2 works
 
-<p align="center">
-  <img src="docs/assets/bacseq_v2_workflow.png" alt="BacSeq v2 workflow diagram" width="96%">
-</p>
+```mermaid
+flowchart TD
+    A[Input FASTQ files] --> B[Read QC and trimming]
+    B --> C{Sequencing mode}
 
-BacSeq v2 follows a **reviewable analysis model**. Contamination candidates are flagged and summarized, but the default policy is not to remove contigs automatically.
+    C -->|Short reads| D1[SPAdes assembly]
+    C -->|Long reads| D2[Long-read assembly]
+    C -->|Hybrid reads| D3[Hybrid assembly]
+
+    D1 --> E[Final assembly FASTA]
+    D2 --> E
+    D3 --> E
+
+    B --> F1[Mash read-level species pre-check]
+    E --> F2[GTDB-Tk genome classification]
+    F1 --> F3[Species concordance check]
+    F2 --> F3
+
+    E --> G[Assembly QC: QUAST and BUSCO]
+    E --> H[Contamination screen]
+    H --> H1[Candidate contaminant table]
+    H --> H2[Blob-style plots and review files]
+
+    H1 --> I{Contamination policy}
+    H2 --> I
+    I -->|review_only default| J[Use original assembly]
+    I -->|strict optional| K[Filtered assembly + quarantine FASTA]
+
+    J --> L[Genome annotation]
+    K --> L
+
+    L --> M1[AMR genes and mutations]
+    L --> M2[MLST and typing]
+    L --> M3[Virulence genes]
+    L --> M4[Plasmid markers]
+    L --> M5[Mobile elements and prophage]
+    L --> M6[Functional annotation]
+
+    F3 --> N[Interactive HTML report]
+    G --> N
+    H --> N
+    M1 --> N
+    M2 --> N
+    M3 --> N
+    M4 --> N
+    M5 --> N
+    M6 --> N
+
+    N --> O[results/report/index.html]
+```
+
+### Design principle
+
+BacSeq v2 uses a **review-first contamination strategy**. By default, suspicious contigs are reported but not removed:
 
 ```yaml
 contamination_policy: "review_only"
 run_auto_decontam: false
 ```
 
-This protects biologically important plasmids, prophages, and mobile genetic elements from accidental removal.
+This is safer because plasmids, prophages, and mobile genetic elements can be biologically important and should not be automatically discarded.
 
 ---
 
-## Recommended repository layout
+## Recommended folder structure
 
 ```text
-BacSeq-v2/
+BacSeq2/
 ├── bin/
 │   └── bacseq
 ├── Snakefile
 ├── config/
 │   ├── config.template.yaml
 │   └── config.yaml
-├── envs/
-│   ├── bacseq_core.yaml
-│   └── database_tools.yaml
 ├── scripts/
 │   ├── setup_databases.sh
 │   ├── update_config_paths.py
 │   └── check_databases.py
+├── envs/
+│   ├── bacseq_core.yaml
+│   └── database_tools.yaml
+├── docs/
+│   └── INSTALL_DATABASES.md
 ├── report/
 │   └── templates/
 │       └── report.html.j2
-├── docs/
-│   ├── INSTALL_DATABASES.md
-│   ├── WORKFLOW.md
-│   └── assets/
-│       ├── bacseq_v2_workflow.png
-│       └── bacseq_v2_workflow.svg
 └── README.md
 ```
 
@@ -95,29 +142,29 @@ BacSeq-v2/
 
 ## Installation
 
-### 1. Clone BacSeq v2
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/BacSeq-v2.git
-cd BacSeq-v2
+git clone https://github.com/komwits-dev/BacSeq2.git
+cd BacSeq2
 ```
 
-### 2. Create the BacSeq environment
+### 2. Create the BacSeq conda environment
 
-Using **mamba** is recommended.
+Using **mamba** is recommended:
 
 ```bash
 mamba env create -f envs/bacseq_core.yaml
 conda activate bacseq_v2_core
 ```
 
-If `mamba` is not installed:
+If you do not have `mamba`, install it first:
 
 ```bash
 conda install -n base -c conda-forge mamba -y
 ```
 
-### 3. Check the launcher
+### 3. Check the BacSeq launcher
 
 ```bash
 chmod +x bin/bacseq scripts/*.sh scripts/*.py
@@ -139,7 +186,7 @@ help
 
 ## Quick start
 
-### Step 1. Create a config file
+### Step 1: Create a config file
 
 ```bash
 bin/bacseq init
@@ -151,7 +198,7 @@ This creates:
 config/config.yaml
 ```
 
-Edit the basic settings:
+Edit only the simple input/output settings first:
 
 ```yaml
 input_dir: "fastq"
@@ -163,9 +210,9 @@ memory_gb: 64
 
 ---
 
-### Step 2. Prepare input FASTQ files
+### Step 2: Prepare input files
 
-For paired-end Illumina reads:
+For paired-end Illumina reads, place FASTQ files in the input folder:
 
 ```text
 fastq/
@@ -175,7 +222,7 @@ fastq/
 └── Sample02_R2.fastq.gz
 ```
 
-Supported naming examples:
+Recommended naming patterns:
 
 ```text
 Sample_R1.fastq.gz / Sample_R2.fastq.gz
@@ -185,9 +232,9 @@ Sample_R1_001.fastq.gz / Sample_R2_001.fastq.gz
 
 ---
 
-### Step 3. Set up databases automatically
+### Step 3: Set up databases automatically
 
-For most bacterial WGS projects, use the **standard** database profile:
+For most users, use the **standard** profile:
 
 ```bash
 bin/bacseq setup-db \
@@ -197,13 +244,13 @@ bin/bacseq setup-db \
   --config config/config.yaml
 ```
 
-Activate database environment variables:
+Then activate database paths:
 
 ```bash
 source ~/bacseq_db/activate_bacseq_db.sh
 ```
 
-Check database paths:
+Check whether the database paths are configured correctly:
 
 ```bash
 bin/bacseq check-db --config config/config.yaml
@@ -211,9 +258,9 @@ bin/bacseq check-db --config config/config.yaml
 
 ---
 
-### Step 4. Dry run
+### Step 4: Test the workflow
 
-Always test the workflow before running analysis:
+Always run a dry run before starting analysis:
 
 ```bash
 bin/bacseq dry-run \
@@ -221,9 +268,7 @@ bin/bacseq dry-run \
   --cores 16
 ```
 
----
-
-### Step 5. Run BacSeq v2
+If the dry run finishes without errors, start the analysis:
 
 ```bash
 bin/bacseq run \
@@ -231,19 +276,21 @@ bin/bacseq run \
   --cores 16
 ```
 
-If the run is interrupted, simply run the same command again. Snakemake will continue from completed steps whenever possible.
-
 ---
 
 ## Database profiles
 
-| Profile | Best for | Main content |
-|---|---|---|
-| `minimal` | Testing the launcher and config structure | Placeholder folders and path setup |
-| `standard` | Routine bacterial WGS analysis | Mash, GTDB-Tk, Kraken2, NCBI taxdump, AMRFinderPlus path setup |
-| `full` | Publication-level genome characterization | Standard profile plus eggNOG, dbCAN, VFDB, PlasmidFinder, and PHASTEST folder |
+BacSeq v2 uses database profiles so users do not need to download every database for every use case.
 
-### Minimal profile
+| Profile | Best for | Includes |
+|---|---|---|
+| `minimal` | Testing the workflow structure | Small folders/placeholders and config path setup |
+| `standard` | Routine bacterial WGS | Mash, GTDB-Tk, Kraken2, NCBI taxdump, AMRFinderPlus path setup |
+| `full` | Publication-level genome report | Standard profile plus eggNOG, dbCAN, VFDB, PlasmidFinder, and PHASTEST folder |
+
+### Minimal setup
+
+Use this when you only want to test the launcher and workflow structure:
 
 ```bash
 bin/bacseq setup-db \
@@ -252,7 +299,9 @@ bin/bacseq setup-db \
   --config config/config.yaml
 ```
 
-### Standard profile
+### Standard setup
+
+Recommended for routine bacterial genome analysis:
 
 ```bash
 bin/bacseq setup-db \
@@ -262,7 +311,9 @@ bin/bacseq setup-db \
   --config config/config.yaml
 ```
 
-### Full profile
+### Full setup
+
+Recommended for publication-level analysis:
 
 ```bash
 bin/bacseq setup-db \
@@ -272,11 +323,19 @@ bin/bacseq setup-db \
   --config config/config.yaml
 ```
 
-> The full profile may require large storage capacity and long download time.
+> The full profile can require large storage space and long download time.
 
 ---
 
-## Configuration example
+## Configuration
+
+Main configuration file:
+
+```text
+config/config.yaml
+```
+
+Example:
 
 ```yaml
 # Input/output
@@ -286,11 +345,11 @@ mode: "short"
 threads: 16
 memory_gb: 64
 
-# Database settings managed by bacseq setup-db
+# Database settings automatically managed by bacseq setup-db
 database_dir: "/home/user/bacseq_db"
 database_profile: "standard"
 
-# Main modules
+# Module switches
 run_species: true
 run_decontam_screen: true
 run_auto_decontam: false
@@ -314,17 +373,13 @@ minimum_contaminant_confidence: 0.90
 
 ## Sequencing modes
 
-| Mode | Input type | Typical assembler design |
+| Mode | Use case | Example config |
 |---|---|---|
-| `short` | Illumina paired-end reads | SPAdes-based assembly |
-| `long` | Nanopore/PacBio reads | long-read assembly + polishing |
-| `hybrid` | Illumina + Nanopore/PacBio | hybrid assembly / polishing workflow |
+| `short` | Illumina paired-end reads | `mode: "short"` |
+| `long` | Nanopore/PacBio reads | `mode: "long"` |
+| `hybrid` | Illumina + Nanopore/PacBio reads | `mode: "hybrid"` |
 
-All modes should produce one unified downstream file:
-
-```text
-assembly/{sample}/final.fasta
-```
+> The workflow should route all assembly modes to one final assembly FASTA before downstream analysis.
 
 ---
 
@@ -364,36 +419,38 @@ results/report/index.html
 
 ---
 
-## Report contents
+## Report structure
 
-The final HTML report is designed to include:
+The HTML report is designed to summarize:
 
-| Section | Content |
-|---|---|
-| Project overview | Sample names, run settings, database profile, pipeline version |
-| Species identification | Mash pre-check, GTDB-Tk classification, concordance warning |
-| Assembly quality | Contig number, N50, genome size, GC content, BUSCO/QUAST metrics |
-| Contamination screening | Candidate contaminant contigs, taxonomy, coverage, GC, review status |
-| Genome annotation | CDS, rRNA, tRNA, functional summary |
-| AMR profile | AMR genes, resistance-associated mutations, genomic determinants |
-| Typing | MLST and species-specific typing when available |
-| Plasmid/virulence/MGE | Plasmid markers, virulence genes, integrons, prophage, mobile elements |
-| Export tables | TSV/JSON/HTML-ready summaries |
+1. Project/sample overview
+2. Species identification
+3. Species concordance warning
+4. Assembly quality
+5. Contamination screening
+6. Genome annotation summary
+7. AMR profile
+8. MLST and typing
+9. Plasmid markers
+10. Virulence genes
+11. Mobile genetic elements
+12. Optional comparative genomics
+13. Downloadable result tables
 
 ---
 
-## Contamination policy
+## Contamination interpretation
 
 BacSeq v2 separates **screening** from **removal**.
 
-### Default mode: review-only
+### Default: review-only mode
 
 ```yaml
 contamination_policy: "review_only"
 run_auto_decontam: false
 ```
 
-Generated files may include:
+This mode generates:
 
 ```text
 candidate_contaminants.tsv
@@ -403,7 +460,9 @@ contig_coverage.tsv
 blob_style_plot.html
 ```
 
-### Optional strict mode
+The user reviews the results before deciding whether contigs should be removed.
+
+### Optional: strict removal mode
 
 ```yaml
 contamination_policy: "strict"
@@ -411,7 +470,7 @@ run_auto_decontam: true
 minimum_contaminant_confidence: 0.90
 ```
 
-Strict mode should preserve removed contigs:
+Strict mode should only remove high-confidence contaminant contigs and must preserve removed contigs in a quarantine file:
 
 ```text
 filtered_assembly.fasta
@@ -427,20 +486,20 @@ removed_contigs.tsv
 |---|---|
 | Show help | `bin/bacseq help` |
 | Create config | `bin/bacseq init` |
-| Standard database setup | `bin/bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16 --config config/config.yaml` |
-| Check database paths | `bin/bacseq check-db --config config/config.yaml` |
+| Set up standard databases | `bin/bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16 --config config/config.yaml` |
+| Check databases | `bin/bacseq check-db --config config/config.yaml` |
 | Dry run | `bin/bacseq dry-run --config config/config.yaml --cores 16` |
 | Run workflow | `bin/bacseq run --config config/config.yaml --cores 16` |
-| Resume workflow | Re-run the same `bin/bacseq run` command |
+| Continue after interruption | Re-run the same `bin/bacseq run` command |
 
 ---
 
-## Complete example
+## Example complete run
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/YOUR_USERNAME/BacSeq-v2.git
-cd BacSeq-v2
+git clone https://github.com/komwits-dev/BacSeq2.git
+cd BacSeq2
 
 # 2. Create environment
 mamba env create -f envs/bacseq_core.yaml
@@ -478,8 +537,7 @@ bin/bacseq run --config config/config.yaml --cores 16
 
 ## Troubleshooting
 
-<details>
-<summary><b>snakemake: command not found</b></summary>
+### `snakemake: command not found`
 
 Activate the BacSeq environment:
 
@@ -487,10 +545,7 @@ Activate the BacSeq environment:
 conda activate bacseq_v2_core
 ```
 
-</details>
-
-<details>
-<summary><b>GTDBTK_DATA_PATH is not set</b></summary>
+### `GTDBTK_DATA_PATH is not set`
 
 Run:
 
@@ -504,18 +559,15 @@ Or manually export:
 export GTDBTK_DATA_PATH="$HOME/bacseq_db/gtdbtk/gtdbtk_data"
 ```
 
-</details>
+### Database check reports missing files
 
-<details>
-<summary><b>Database check reports missing files</b></summary>
-
-Check paths:
+Run:
 
 ```bash
 bin/bacseq check-db --config config/config.yaml
 ```
 
-Then re-run setup:
+Then re-run setup if needed:
 
 ```bash
 bin/bacseq setup-db \
@@ -525,42 +577,38 @@ bin/bacseq setup-db \
   --config config/config.yaml
 ```
 
-</details>
+### Workflow stopped halfway
 
-<details>
-<summary><b>Workflow stopped halfway</b></summary>
-
-Run the same command again:
+BacSeq uses Snakemake. Re-run the same command:
 
 ```bash
 bin/bacseq run --config config/config.yaml --cores 16
 ```
 
-Snakemake will resume from available completed outputs.
+Snakemake will continue from completed files where possible.
 
-</details>
+### Conda environment solving is slow
 
-<details>
-<summary><b>Conda environment solving is slow</b></summary>
-
-Install and use mamba:
+Use mamba:
 
 ```bash
 conda install -n base -c conda-forge mamba -y
 ```
 
-</details>
+Then re-run the workflow.
 
 ---
 
-## Development roadmap
+## Development notes
 
-- [ ] Add small public test dataset
-- [ ] Add GitHub Actions validation
-- [ ] Add offline self-contained report assets
-- [ ] Add species-specific typing router
-- [ ] Add Bioconda recipe after end-to-end tests
-- [ ] Add Java GUI mode that writes `config.yaml` and launches Snakemake
+Recommended future improvements:
+
+- Add a small public test dataset.
+- Add GitHub Actions for basic command validation.
+- Add offline self-contained HTML report assets.
+- Add species-specific typing router after stable species identification.
+- Add Bioconda recipe after the workflow passes end-to-end tests.
+- Add Java GUI support where the GUI writes `config.yaml` and calls `bin/bacseq run`.
 
 ---
 
@@ -578,10 +626,15 @@ Bacterial genome analysis was performed using BacSeq v2, a Snakemake-based workf
 
 ## License
 
+Add your preferred license here, for example:
+
+```text
 MIT License
+```
 
 ---
 
 ## Contact
 
 For questions, bug reports, or feature requests, please open a GitHub Issue.
+
