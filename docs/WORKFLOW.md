@@ -1,43 +1,24 @@
-# BacSeq v2 workflow diagram
+# BacSeq v2 workflow
 
-```mermaid
-flowchart TD
-    A[Input FASTQ files] --> B[Read QC and trimming]
-    B --> C{Sequencing mode}
-    C -->|Short reads| D1[SPAdes assembly]
-    C -->|Long reads| D2[Long-read assembly]
-    C -->|Hybrid reads| D3[Hybrid assembly]
-    D1 --> E[Final assembly FASTA]
-    D2 --> E
-    D3 --> E
-    B --> F1[Mash read-level species pre-check]
-    E --> F2[GTDB-Tk genome classification]
-    F1 --> F3[Species concordance check]
-    F2 --> F3
-    E --> G[Assembly QC: QUAST and BUSCO]
-    E --> H[Contamination screen]
-    H --> H1[Candidate contaminant table]
-    H --> H2[Blob-style plots and review files]
-    H1 --> I{Contamination policy}
-    H2 --> I
-    I -->|review_only default| J[Use original assembly]
-    I -->|strict optional| K[Filtered assembly + quarantine FASTA]
-    J --> L[Genome annotation]
-    K --> L
-    L --> M1[AMR genes and mutations]
-    L --> M2[MLST and typing]
-    L --> M3[Virulence genes]
-    L --> M4[Plasmid markers]
-    L --> M5[Mobile elements and prophage]
-    L --> M6[Functional annotation]
-    F3 --> N[Interactive HTML report]
-    G --> N
-    H --> N
-    M1 --> N
-    M2 --> N
-    M3 --> N
-    M4 --> N
-    M5 --> N
-    M6 --> N
-    N --> O[results/report/index.html]
+<p align="center">
+  <img src="assets/bacseq_v2_workflow.png" alt="BacSeq v2 workflow" width="100%">
+</p>
+
+BacSeq v2 uses a species-first, contamination-aware, report-centered bacterial WGS workflow.
+
+## Main logic
+
+1. **Input reads** are processed by read QC and trimming.
+2. Reads are assembled using the selected sequencing mode.
+3. Species identification is performed using Mash and GTDB-Tk.
+4. Contamination is screened using taxonomy, coverage, GC content, and contig-level evidence.
+5. Contamination is reported first; removal is optional and strict.
+6. Annotation, AMR, MLST, plasmid, virulence, and MGE modules are run on the selected final assembly.
+7. All outputs are integrated into an interactive HTML report.
+
+## Default contamination behavior
+
+```yaml
+contamination_policy: "review_only"
+run_auto_decontam: false
 ```

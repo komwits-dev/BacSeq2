@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="55%" stop-color="#eefaf5"/>
+      <stop offset="100%" stop-color="#eaf7ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#0b3b47" flood-opacity="0.16"/>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0b3b47" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 14 7 L 0 14 z" fill="#286f55"/>
+    </marker>
+    <style>
+      .title { font: 800 46px Inter, Arial, sans-serif; fill: #123f38; }
+      .subtitle { font: 500 20px Inter, Arial, sans-serif; fill: #355f5a; }
+      .box-title { font: 800 22px Inter, Arial, sans-serif; fill: #05332e; }
+      .box-text { font: 500 15px Inter, Arial, sans-serif; fill: #264b49; }
+      .small { font: 600 14px Inter, Arial, sans-serif; fill: #345c58; }
+      .label { font: 700 15px Inter, Arial, sans-serif; fill: #2f5d53; letter-spacing: 0.2px; }
+      .footer { font: 500 18px Inter, Arial, sans-serif; fill: #315c56; }
+      .arrow { stroke: #286f55; stroke-width: 4; fill: none; marker-end: url(#arrow); stroke-linecap: round; stroke-linejoin: round; }
+      .thin { stroke-width: 3; opacity: .90; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1080" rx="42" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1532" height="1012" rx="40" fill="#ffffff" opacity="0.35"/>
+
+  <text x="92" y="105" class="title">BacSeq v2 workflow</text>
+  <text x="92" y="139" class="subtitle">Automated bacterial WGS analysis with species identification, contamination review, genome annotation, AMR profiling, and interactive reporting</text>
+
+  <!-- input -->
+  <rect x="88" y="208" width="300" height="104" rx="22" fill="#e8f3ff" stroke="#2f80ed" stroke-width="4" filter="url(#shadow)"/>
+  <text x="118" y="250" class="box-title">1. Input reads</text>
+  <text x="118" y="281" class="box-text">Illumina, Nanopore/PacBio</text>
+  <text x="118" y="306" class="box-text">or hybrid FASTQ datasets</text>
+
+  <!-- preprocess -->
+  <rect x="500" y="175" width="310" height="100" rx="22" fill="#f4f7fb" stroke="#6b7b8e" stroke-width="3" filter="url(#softShadow)"/>
+  <text x="530" y="216" class="box-title">2. Read QC</text>
+  <text x="530" y="247" class="box-text">FastQC, fastp, MultiQC</text>
+
+  <rect x="500" y="330" width="310" height="124" rx="22" fill="#f4f7fb" stroke="#6b7b8e" stroke-width="3" filter="url(#softShadow)"/>
+  <text x="530" y="372" class="box-title">3. Assembly engine</text>
+  <text x="530" y="404" class="box-text">Short, long, or hybrid mode</text>
+  <text x="530" y="430" class="box-text">Unified final assembly FASTA</text>
+
+  <!-- analysis stack -->
+  <rect x="900" y="140" width="300" height="104" rx="22" fill="#e6fbf2" stroke="#1f7a60" stroke-width="4" filter="url(#shadow)"/>
+  <text x="930" y="181" class="box-title">Species identification</text>
+  <text x="930" y="213" class="box-text">Mash pre-check + GTDB-Tk</text>
+
+  <rect x="900" y="282" width="300" height="104" rx="22" fill="#ffeded" stroke="#c92a25" stroke-width="4" filter="url(#shadow)"/>
+  <text x="930" y="323" class="box-title">Contamination screen</text>
+  <text x="930" y="355" class="box-text">Coverage, GC, taxonomy, blob plots</text>
+
+  <rect x="900" y="424" width="300" height="104" rx="22" fill="#fff5dd" stroke="#f08c00" stroke-width="4" filter="url(#shadow)"/>
+  <text x="930" y="465" class="box-title">Genome quality</text>
+  <text x="930" y="497" class="box-text">QUAST, BUSCO, genome metrics</text>
+
+  <rect x="900" y="566" width="300" height="104" rx="22" fill="#f1ecff" stroke="#7950f2" stroke-width="4" filter="url(#shadow)"/>
+  <text x="930" y="607" class="box-title">Annotation</text>
+  <text x="930" y="639" class="box-text">Prokka / functional features</text>
+
+  <rect x="900" y="708" width="300" height="120" rx="22" fill="#e9f7ff" stroke="#0ca6df" stroke-width="4" filter="url(#shadow)"/>
+  <text x="930" y="749" class="box-title">AMR, typing &amp; MGE</text>
+  <text x="930" y="781" class="box-text">AMRFinderPlus, MLST, plasmid,</text>
+  <text x="930" y="806" class="box-text">virulence, integron, prophage</text>
+
+  <!-- master/report -->
+  <rect x="1320" y="284" width="210" height="118" rx="22" fill="#e6fffb" stroke="#087f78" stroke-width="4" filter="url(#shadow)"/>
+  <text x="1350" y="329" class="box-title">Master matrix</text>
+  <text x="1350" y="361" class="box-text">Integrated features</text>
+  <text x="1350" y="386" class="box-text">per isolate</text>
+
+  <rect x="1320" y="475" width="210" height="118" rx="22" fill="#e3f8ff" stroke="#0ca6df" stroke-width="4" filter="url(#shadow)"/>
+  <text x="1350" y="520" class="box-title">Review gate</text>
+  <text x="1350" y="552" class="box-text">Contamination is</text>
+  <text x="1350" y="577" class="box-text">review-only by default</text>
+
+  <rect x="1290" y="705" width="250" height="150" rx="22" fill="#ecfbff" stroke="#0ca6df" stroke-width="4" filter="url(#shadow)"/>
+  <text x="1322" y="750" class="box-title">Interactive report</text>
+  <text x="1322" y="783" class="box-text">Single-project summary</text>
+  <text x="1322" y="809" class="box-text">HTML tables + plots</text>
+  <text x="1322" y="835" class="box-text">Export-ready results</text>
+
+  <!-- arrows -->
+  <path class="arrow" d="M388 260 C438 260 447 224 496 224"/>
+  <path class="arrow" d="M388 260 C445 282 442 390 496 390"/>
+  <path class="arrow" d="M810 225 C852 214 858 193 895 193"/>
+  <path class="arrow" d="M810 392 C852 370 858 337 895 337"/>
+  <path class="arrow" d="M810 392 C856 420 858 477 895 477"/>
+  <path class="arrow" d="M810 392 C864 466 852 617 895 617"/>
+  <path class="arrow" d="M810 392 C870 515 850 764 895 764"/>
+  <path class="arrow thin" d="M1200 192 C1250 192 1265 310 1316 338"/>
+  <path class="arrow thin" d="M1200 334 C1248 334 1263 336 1316 342"/>
+  <path class="arrow thin" d="M1200 477 C1255 452 1262 390 1316 355"/>
+  <path class="arrow thin" d="M1200 618 C1260 585 1268 445 1316 371"/>
+  <path class="arrow thin" d="M1200 768 C1263 700 1278 450 1316 380"/>
+  <path class="arrow" d="M1425 402 L1425 470"/>
+  <path class="arrow" d="M1425 593 L1425 700"/>
+
+  <!-- output cards -->
+  <text x="92" y="900" class="label">Final BacSeq outputs</text>
+  <rect x="92" y="928" width="232" height="94" rx="18" fill="#164734" filter="url(#shadow)"/>
+  <text x="120" y="967" class="box-title" fill="#ffffff">Species call</text>
+  <text x="120" y="999" class="small" fill="#e8fff5">Mash + GTDB-Tk concordance</text>
+
+  <rect x="356" y="928" width="262" height="94" rx="18" fill="#57b894" stroke="#2f7e63" stroke-width="2" filter="url(#shadow)"/>
+  <text x="384" y="967" class="box-title">Contamination review</text>
+  <text x="384" y="999" class="small">Candidate contigs + plots</text>
+
+  <rect x="650" y="928" width="225" height="94" rx="18" fill="#ffa96b" stroke="#f07a24" stroke-width="2" filter="url(#shadow)"/>
+  <text x="678" y="967" class="box-title">Genome report</text>
+  <text x="678" y="999" class="small">Quality + annotation summary</text>
+
+  <rect x="906" y="928" width="240" height="94" rx="18" fill="#ca2b22" stroke="#8d1f18" stroke-width="2" filter="url(#shadow)"/>
+  <text x="934" y="967" class="box-title" fill="#ffffff">AMR / typing</text>
+  <text x="934" y="999" class="small" fill="#fff5f3">Genomic determinants only</text>
+
+  <rect x="1178" y="928" width="300" height="94" rx="18" fill="#dff7ff" stroke="#0ca6df" stroke-width="3" filter="url(#shadow)"/>
+  <text x="1206" y="967" class="box-title">report/index.html</text>
+  <text x="1206" y="999" class="small">Shareable interactive HTML</text>
+
+  <path class="arrow thin" d="M1425 856 C1350 900 1310 907 1300 922"/>
+  <path class="arrow thin" d="M1425 856 C1080 910 1030 910 1028 922"/>
+  <path class="arrow thin" d="M1425 856 C800 906 760 906 760 922"/>
+  <path class="arrow thin" d="M1425 856 C520 908 488 908 488 922"/>
+  <path class="arrow thin" d="M1425 856 C220 908 206 908 206 922"/>
+
+  <text x="92" y="1050" class="footer">Designed for reproducible, reviewable, and publication-ready bacterial genome interpretation.</text>
+</svg>
