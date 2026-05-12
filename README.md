@@ -64,11 +64,7 @@ Major goals:
 
 ```bash
 git clone https://github.com/komwits-dev/BacSeq2.git
-<<<<<<< HEAD
 cd BacSeq2
-=======
-cd BacSeq-v2
->>>>>>> 90c79fa3239d435a272eea54904b9cab8ffe9807
 ```
 
 ### 2. Configure Bioconda channels
