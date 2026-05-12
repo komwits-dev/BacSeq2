@@ -1,47 +1,57 @@
-# BacSeq2 optional AMR/VFDB/plasmid/MGE/prophage Snakemake rules
-# Include from the main Snakefile after the final assembly FASTA is standardized.
-# Assumption: final assembly path is results/assembly/{sample}/final.fasta
+# BacSeq2 AMR/VFDB/plasmid/MGE/prophage Snakemake rules
+# Include this file from the main Snakefile after the final assembly FASTA is standardized.
+# Expected final assembly path:
+#   {output_dir}/assembly/{sample}/final.fasta
+
+OUTDIR = config.get("output_dir", "results")
+ASSEMBLY_FINAL = OUTDIR + "/assembly/{sample}/final.fasta"
 
 rule amrfinderplus:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        tsv="results/amr/{sample}/amrfinderplus.tsv"
+        tsv=OUTDIR + "/amr/{sample}/amrfinderplus.tsv"
     params:
-        db=lambda wildcards, config: config.get("amrfinder_db", "")
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        db=lambda wc: config.get("amrfinder_db", "")
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
         r"""
         mkdir -p $(dirname {output.tsv})
-        amrfinder --nucleotide {input.assembly} --database {params.db} --output {output.tsv} --threads {threads}
+        if [ -n "{params.db}" ] && [ -d "{params.db}" ]; then
+          amrfinder --nucleotide {input.assembly} --database {params.db} --output {output.tsv} --threads {threads}
+        else
+          amrfinder --nucleotide {input.assembly} --output {output.tsv} --threads {threads}
+        fi
         """
 
 rule card_rgi:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        txt="results/amr/{sample}/card_rgi.txt"
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        txt=OUTDIR + "/amr/{sample}/card_rgi.txt"
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
         r"""
-        mkdir -p results/amr/{wildcards.sample}
-        rgi main --input_sequence {input.assembly} --output_file results/amr/{wildcards.sample}/card_rgi \
+        mkdir -p {OUTDIR}/amr/{wildcards.sample}
+        rgi main --input_sequence {input.assembly} \
+          --output_file {OUTDIR}/amr/{wildcards.sample}/card_rgi \
           --input_type contig --local --clean --num_threads {threads}
-        test -s results/amr/{wildcards.sample}/card_rgi.txt
+        test -s {output.txt}
         """
 
 rule resfinder:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/amr/{sample}/resfinder")
+        directory(OUTDIR + "/amr/{sample}/resfinder")
     params:
-        db_res=lambda wildcards, config: config.get("resfinder_db", ""),
-        species=lambda wildcards, config: config.get("resfinder_species", "Other")
+        db_res=lambda wc: config.get("resfinder_db", ""),
+        db_point=lambda wc: config.get("pointfinder_db", ""),
+        species=lambda wc: config.get("resfinder_species", "Other")
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -52,9 +62,9 @@ rule resfinder:
 
 rule vfdb_abricate:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        tsv="results/virulence/{sample}/vfdb_abricate.tsv"
+        tsv=OUTDIR + "/virulence/{sample}/vfdb_abricate.tsv"
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -63,12 +73,36 @@ rule vfdb_abricate:
         abricate --db vfdb {input.assembly} > {output.tsv}
         """
 
+rule vfdb_diamond:
+    input:
+        assembly=ASSEMBLY_FINAL
+    output:
+        tsv=OUTDIR + "/virulence/{sample}/vfdb_diamond.tsv"
+    params:
+        db=lambda wc: config.get("vfdb_diamond_db", ""),
+        identity=lambda wc: config.get("vfdb_min_identity", 80)
+    threads: lambda wc: int(config.get("threads", 8))
+    conda:
+        "../envs/amr_mge.yaml"
+    shell:
+        r"""
+        mkdir -p $(dirname {output.tsv})
+        if [ -s "{params.db}" ]; then
+          prodigal -i {input.assembly} -a {OUTDIR}/virulence/{wildcards.sample}/proteins.faa -q
+          diamond blastp --query {OUTDIR}/virulence/{wildcards.sample}/proteins.faa \
+            --db {params.db} --out {output.tsv} --outfmt 6 \
+            --id {params.identity} --threads {threads}
+        else
+          echo -e "query\tsubject\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore" > {output.tsv}
+        fi
+        """
+
 rule mob_recon:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/plasmids/{sample}/mob_recon")
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        directory(OUTDIR + "/plasmids/{sample}/mob_recon")
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -77,25 +111,38 @@ rule mob_recon:
         mob_recon --infile {input.assembly} --outdir {output} --num_threads {threads}
         """
 
-rule mobileelementfinder:
+rule plasmidfinder_abricate:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/mge/{sample}/mobileelementfinder")
+        tsv=OUTDIR + "/plasmids/{sample}/plasmidfinder_abricate.tsv"
     conda:
         "../envs/amr_mge.yaml"
     shell:
         r"""
-        mkdir -p results/mge/{wildcards.sample}
-        mefinder find --contig {input.assembly} results/mge/{wildcards.sample}/mobileelementfinder
+        mkdir -p $(dirname {output.tsv})
+        abricate --db plasmidfinder {input.assembly} > {output.tsv}
+        """
+
+rule mobileelementfinder:
+    input:
+        assembly=ASSEMBLY_FINAL
+    output:
+        directory(OUTDIR + "/mge/{sample}/mobileelementfinder")
+    conda:
+        "../envs/amr_mge.yaml"
+    shell:
+        r"""
+        mkdir -p {OUTDIR}/mge/{wildcards.sample}
+        mefinder find --contig {input.assembly} {OUTDIR}/mge/{wildcards.sample}/mobileelementfinder
         """
 
 rule integronfinder:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/mge/{sample}/integronfinder")
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        directory(OUTDIR + "/mge/{sample}/integronfinder")
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -106,10 +153,10 @@ rule integronfinder:
 
 rule isescan:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/mge/{sample}/isescan")
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        directory(OUTDIR + "/mge/{sample}/isescan")
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -120,9 +167,9 @@ rule isescan:
 
 rule phigaro:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/prophage/{sample}/phigaro")
+        directory(OUTDIR + "/prophage/{sample}/phigaro")
     conda:
         "../envs/amr_mge.yaml"
     shell:
@@ -133,16 +180,42 @@ rule phigaro:
 
 rule genomad_optional:
     input:
-        assembly="results/assembly/{sample}/final.fasta"
+        assembly=ASSEMBLY_FINAL
     output:
-        directory("results/mge/{sample}/genomad")
+        directory(OUTDIR + "/mge/{sample}/genomad")
     params:
-        db=lambda wildcards, config: config.get("genomad_db", "")
-    threads: lambda wildcards, config: int(config.get("threads", 8))
+        db=lambda wc: config.get("genomad_db", "")
+    threads: lambda wc: int(config.get("threads", 8))
     conda:
         "../envs/amr_mge.yaml"
     shell:
         r"""
         mkdir -p {output}
         genomad end-to-end {input.assembly} {output} {params.db} --threads {threads}
+        """
+
+rule summarize_amr_mge:
+    input:
+        amrfinder=OUTDIR + "/amr/{sample}/amrfinderplus.tsv",
+        card=OUTDIR + "/amr/{sample}/card_rgi.txt",
+        vfdb=OUTDIR + "/virulence/{sample}/vfdb_abricate.tsv",
+        mob=OUTDIR + "/plasmids/{sample}/mob_recon",
+        mefinder=OUTDIR + "/mge/{sample}/mobileelementfinder",
+        phigaro=OUTDIR + "/prophage/{sample}/phigaro"
+    output:
+        json=OUTDIR + "/report/{sample}/amr_mge_summary.json"
+    conda:
+        "../envs/amr_mge.yaml"
+    shell:
+        r"""
+        mkdir -p $(dirname {output.json})
+        python scripts/summarize_amr_mge.py \
+          --sample {wildcards.sample} \
+          --out {output.json} \
+          --amrfinder {input.amrfinder} \
+          --card {input.card} \
+          --vfdb {input.vfdb} \
+          --mob {input.mob} \
+          --mefinder {input.mefinder} \
+          --phigaro {input.phigaro}
         """

@@ -1,80 +1,62 @@
-<!-- BacSeq2 AMR/MGE report sections: include inside report/templates/report.html.j2 -->
-
-<section id="amr-consensus" class="card">
-  <h2>AMR consensus summary</h2>
-  <p>
-    AMR determinants were predicted using AMRFinderPlus, CARD/RGI, and ResFinder.
-    Hits supported by multiple tools are prioritized as high-confidence genomic AMR determinants.
-    Genomic predictions should be interpreted together with phenotypic AST when clinical interpretation is required.
+<!-- BacSeq2 AMR/VFDB/plasmid/MGE/prophage report section -->
+<section id="amr-mge" class="section-card">
+  <h2>AMR, virulence, plasmid, mobile element, and prophage screening</h2>
+  <p class="report-note">
+    BacSeq2 compares multiple genomic AMR resources and reports genomic determinants only.
+    These results should not be interpreted as a clinical antibiogram unless AST phenotype data are provided.
   </p>
-  <div class="kpi-grid">
-    <div class="kpi"><span>{{ amr_summary.total_hits | default('NA') }}</span><label>Total AMR hits</label></div>
-    <div class="kpi"><span>{{ amr_summary.high_confidence | default('NA') }}</span><label>High-confidence hits</label></div>
-    <div class="kpi"><span>{{ amr_summary.multidrug_classes | default('NA') }}</span><label>Drug classes</label></div>
-    <div class="kpi"><span>{{ amr_summary.tool_discordant | default('NA') }}</span><label>Tool-specific hits</label></div>
+
+  <div class="summary-grid">
+    <div class="metric-card">
+      <span class="metric-label">AMRFinderPlus hits</span>
+      <span class="metric-value">{{ amr_mge.amr.amrfinderplus_hits | default('NA') }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-label">CARD/RGI hits</span>
+      <span class="metric-value">{{ amr_mge.amr.card_rgi_hits | default('NA') }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-label">VFDB hits</span>
+      <span class="metric-value">{{ amr_mge.virulence.vfdb_hits | default('NA') }}</span>
+    </div>
   </div>
-  <div id="amr-class-barplot"></div>
-  <table id="amr-consensus-table" class="display compact">
-    <thead>
-      <tr>
-        <th>Gene/mutation</th><th>Class</th><th>Drug</th><th>Mechanism</th>
-        <th>AMRFinderPlus</th><th>CARD/RGI</th><th>ResFinder</th>
-        <th>Identity</th><th>Coverage</th><th>Confidence</th><th>Context</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for row in amr_consensus %}
-      <tr>
-        <td>{{ row.gene_or_mutation }}</td><td>{{ row.antimicrobial_class }}</td><td>{{ row.drug }}</td><td>{{ row.mechanism }}</td>
-        <td>{{ row.amrfinderplus_hit }}</td><td>{{ row.card_rgi_hit }}</td><td>{{ row.resfinder_hit }}</td>
-        <td>{{ row.identity }}</td><td>{{ row.coverage }}</td><td>{{ row.prediction_confidence }}</td><td>{{ row.context }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
 
-<section id="virulence" class="card">
-  <h2>Virulence factors</h2>
-  <p>Virulence genes were screened against VFDB. Hits represent genomic similarity to known virulence factor sequences and should be interpreted in organism context.</p>
-  <table id="vfdb-table" class="display compact">
-    <thead><tr><th>Gene</th><th>VF category</th><th>Contig</th><th>Identity</th><th>Coverage</th><th>Description</th></tr></thead>
-    <tbody>
-    {% for row in vfdb_hits %}
-      <tr><td>{{ row.gene }}</td><td>{{ row.category }}</td><td>{{ row.contig }}</td><td>{{ row.identity }}</td><td>{{ row.coverage }}</td><td>{{ row.description }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
+  <h3>AMR comparison</h3>
+  <p>
+    AMRFinderPlus, CARD/RGI, and ResFinder results are intentionally shown side-by-side because each database has
+    different curation scope and detection logic. Consensus hits across multiple tools should be prioritized, while
+    tool-specific hits should be reviewed manually.
+  </p>
 
-<section id="plasmid-mge" class="card">
-  <h2>Plasmid and mobile genetic element context</h2>
-  <p>MOB-suite, PlasmidFinder, MobileElementFinder, IntegronFinder, and ISEScan results are integrated to show potential AMR mobilization context.</p>
-  <div class="kpi-grid">
-    <div class="kpi"><span>{{ plasmid_summary.predicted_plasmids | default('NA') }}</span><label>Predicted plasmids</label></div>
-    <div class="kpi"><span>{{ mge_summary.mobile_elements | default('NA') }}</span><label>Mobile elements</label></div>
-    <div class="kpi"><span>{{ mge_summary.integrons | default('NA') }}</span><label>Integrons</label></div>
-    <div class="kpi"><span>{{ mge_summary.insertion_sequences | default('NA') }}</span><label>Insertion sequences</label></div>
+  <h3>Genetic context</h3>
+  <ul>
+    <li><strong>MOB-suite:</strong> plasmid reconstruction and plasmid-like contig evidence.</li>
+    <li><strong>PlasmidFinder:</strong> plasmid replicon screening.</li>
+    <li><strong>MobileElementFinder/MEFinder, IntegronFinder, and ISEScan:</strong> mobile element context.</li>
+    <li><strong>Phigaro/geNomad:</strong> prophage and virus/provirus screening.</li>
+  </ul>
+
+  <h3>Preview: AMRFinderPlus</h3>
+  <div class="table-responsive">
+    <table class="display compact">
+      <thead>
+        <tr>
+          {% if amr_mge.amr.amrfinderplus_preview and amr_mge.amr.amrfinderplus_preview[0] %}
+            {% for key in amr_mge.amr.amrfinderplus_preview[0].keys() %}<th>{{ key }}</th>{% endfor %}
+          {% else %}
+            <th>Status</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% if amr_mge.amr.amrfinderplus_preview %}
+          {% for row in amr_mge.amr.amrfinderplus_preview %}
+            <tr>{% for value in row.values() %}<td>{{ value }}</td>{% endfor %}</tr>
+          {% endfor %}
+        {% else %}
+          <tr><td>No AMRFinderPlus hits or file unavailable.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
   </div>
-  <table id="mge-context-table" class="display compact">
-    <thead><tr><th>Feature</th><th>Tool</th><th>Contig</th><th>Start</th><th>End</th><th>Nearest AMR gene</th><th>Notes</th></tr></thead>
-    <tbody>
-    {% for row in mge_context %}
-      <tr><td>{{ row.feature }}</td><td>{{ row.tool }}</td><td>{{ row.contig }}</td><td>{{ row.start }}</td><td>{{ row.end }}</td><td>{{ row.nearest_amr }}</td><td>{{ row.notes }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-<section id="prophage" class="card">
-  <h2>Prophage regions</h2>
-  <p>Prophage regions were predicted using Phigaro, with optional geNomad/PhiSpy confirmation in future BacSeq2 versions.</p>
-  <table id="prophage-table" class="display compact">
-    <thead><tr><th>Region</th><th>Contig</th><th>Start</th><th>End</th><th>Length</th><th>Score</th><th>AMR/VF nearby</th></tr></thead>
-    <tbody>
-    {% for row in prophage_hits %}
-      <tr><td>{{ row.region }}</td><td>{{ row.contig }}</td><td>{{ row.start }}</td><td>{{ row.end }}</td><td>{{ row.length }}</td><td>{{ row.score }}</td><td>{{ row.amr_vf_nearby }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
 </section>

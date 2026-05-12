@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# BacSeq2 AMR/VFDB/plasmid/MGE/prophage database setup helper
-# This script is intentionally best-effort because some databases require
-# manual download, registration, or database-specific license acceptance.
+# BacSeq2 AMR/VFDB/plasmid/MGE/prophage database setup helper.
+# This script is best-effort because some databases require licenses, manual download,
+# or tool-specific database installation. It updates config paths regardless.
 
 DB_DIR="$HOME/bacseq_db"
 THREADS=8
 CONFIG="config/config.yaml"
 FORCE=0
 SKIP_OPTIONAL=0
+PROFILE="full"
 
 usage() {
   cat <<USAGE
 BacSeq2 AMR/MGE database setup
 
 Usage:
+  bin/bacseq setup-amr-mge-db [options]
   bash scripts/setup_amr_mge_databases.sh [options]
 
 Options:
@@ -23,14 +25,13 @@ Options:
   --threads N      Threads [default: 8]
   --config FILE    Config file to update [default: config/config.yaml]
   --force          Re-download/rebuild when possible
-  --skip-optional  Skip tools/databases that are not installed
+  --skip-optional  Skip optional download attempts when tools are missing
   -h, --help       Show help
 
-Example:
-  bash scripts/setup_amr_mge_databases.sh \
-    --db-dir /media/mecob/komwit/BacSeq_DB \
-    --threads 16 \
-    --config config/config.yaml
+Modules configured:
+  AMRFinderPlus, CARD/RGI, ResFinder/PointFinder, VFDB, MOB-suite,
+  PlasmidFinder, MobileElementFinder/MEFinder, IntegronFinder, ISEScan,
+  Phigaro, optional geNomad.
 USAGE
 }
 
@@ -68,8 +69,18 @@ safe_download() {
     echo "Found existing: $out"
     return 0
   fi
+  rm -f "$out.aria2" 2>/dev/null || true
   if has_cmd aria2c; then
-    aria2c -x 8 -s 8 -c -o "$(basename "$out")" -d "$(dirname "$out")" "$url"
+    aria2c \
+      --continue=true \
+      --max-connection-per-server=8 \
+      --split=8 \
+      --file-allocation=none \
+      --auto-file-renaming=false \
+      --allow-overwrite=true \
+      -o "$(basename "$out")" \
+      -d "$(dirname "$out")" \
+      "$url"
   elif has_cmd wget; then
     wget -c "$url" -O "$out"
   elif has_cmd curl; then
@@ -108,21 +119,22 @@ fi
 
 # CARD/RGI
 msg "CARD/RGI database"
+cat > "$DB_DIR/card_rgi/README.txt" <<CARD
+CARD/RGI local database folder.
+If automatic loading fails, download CARD data manually and run:
+
+  rgi load --card_json /path/to/card.json --local
+
+BacSeq2 runs RGI with --local, so make sure your RGI local DB is loaded in the active environment.
+CARD
 if has_cmd rgi; then
   if rgi auto_load --help >/dev/null 2>&1; then
     rgi auto_load --local || warn "rgi auto_load failed. CARD may require manual download."
   else
-    cat > "$DB_DIR/card_rgi/README.txt" <<CARD
-RGI is installed, but automatic CARD loading is not available in this version.
-Download CARD data from the official CARD website and run, for example:
-
-  rgi load --card_json /path/to/card.json --local
-
-Then re-run BacSeq2.
-CARD
+    warn "RGI installed but auto_load unavailable. Use manual CARD loading."
   fi
 else
-  warn "rgi not found. Install rgi or skip CARD/RGI module."
+  warn "rgi not found. Install rgi or disable CARD/RGI."
 fi
 
 # ResFinder and PointFinder databases
@@ -146,7 +158,6 @@ fi
 
 # VFDB
 msg "VFDB database"
-# VFDB links have historically existed at these locations; if they fail, download manually from VFDB.
 if [[ ! -s "$DB_DIR/vfdb/VFDB_setB_pro.fas" || "$FORCE" -eq 1 ]]; then
   safe_download "http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz" "$DB_DIR/vfdb/VFDB_setB_pro.fas.gz" || warn "VFDB protein download failed."
   [[ -s "$DB_DIR/vfdb/VFDB_setB_pro.fas.gz" ]] && gunzip -kf "$DB_DIR/vfdb/VFDB_setB_pro.fas.gz" || true
@@ -159,17 +170,17 @@ if [[ -s "$DB_DIR/vfdb/VFDB_setB_pro.fas" && ( ! -s "$DB_DIR/vfdb/VFDB_setB_pro.
   if has_cmd diamond; then
     diamond makedb --in "$DB_DIR/vfdb/VFDB_setB_pro.fas" --db "$DB_DIR/vfdb/VFDB_setB_pro" || warn "DIAMOND VFDB build failed."
   else
-    warn "diamond not found; VFDB DIAMOND database was not built."
+    warn "diamond not found; VFDB DIAMOND DB was not built."
   fi
 fi
 
-# ABRicate setup for VFDB/ResFinder/PlasmidFinder convenience
+# ABRicate convenience databases
 msg "ABRicate database index setup"
 if has_cmd abricate; then
   abricate --setupdb || warn "abricate --setupdb failed."
   abricate --list || true
 else
-  warn "abricate not found. VFDB/PlasmidFinder via ABRicate will be unavailable."
+  warn "abricate not found. VFDB/PlasmidFinder via ABRicate unavailable."
 fi
 
 # MOB-suite
@@ -184,8 +195,7 @@ fi
 msg "PlasmidFinder database"
 cat > "$DB_DIR/plasmidfinder_db/README.txt" <<PLASMID
 Place PlasmidFinder database files here, or use ABRicate's plasmidfinder database.
-If the plasmidfinder package provides a download-db.sh command in your environment,
-run it from this directory.
+If your plasmidfinder package provides download-db.sh, run it from this directory.
 PLASMID
 if has_cmd download-db.sh; then
   (cd "$DB_DIR/plasmidfinder_db" && download-db.sh) || warn "download-db.sh failed."
@@ -219,10 +229,9 @@ msg "geNomad database"
 if has_cmd genomad; then
   genomad download-database "$DB_DIR/genomad" || warn "geNomad database download failed."
 else
-  warn "genomad not found. Optional geNomad module will be unavailable."
+  warn "genomad not found. Optional geNomad module unavailable."
 fi
 
-# Write environment helper
 cat > "$DB_DIR/activate_bacseq_db.sh" <<ENV
 # Source this before running BacSeq2 when databases are outside Home.
 export BACSEQ_DB="$DB_DIR"
@@ -231,14 +240,12 @@ export AMRFINDER_DB="$DB_DIR/amrfinderplus"
 export MOB_SUITE_DB="$DB_DIR/mob_suite"
 ENV
 
-# Update config paths using existing helper when available
 msg "Updating config paths"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/update_config_paths.py" ]]; then
-  python3 "$SCRIPT_DIR/update_config_paths.py" --config "$CONFIG" --db-dir "$DB_DIR" --profile full
-else
-  warn "update_config_paths.py not found; config not updated automatically."
-fi
+python3 "$SCRIPT_DIR/update_config_paths.py" --config "$CONFIG" --db-dir "$DB_DIR" --profile "$PROFILE"
+
+msg "Checking database paths"
+python3 "$SCRIPT_DIR/check_databases.py" --config "$CONFIG" --profile "$PROFILE" || true
 
 msg "Finished AMR/MGE setup"
 echo "Next:"

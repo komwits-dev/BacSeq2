@@ -1,5 +1,6 @@
 # BacSeq2 configuration template
-# Copy this file to config/config.yaml and edit input/output settings first.
+# Copy to config/config.yaml with: bin/bacseq init
+# Then set input_dir and output_dir before running.
 
 # Input/output
 input_dir: "fastq"
@@ -14,10 +15,11 @@ memory_gb: 32
 # full     = publication-level annotation with AMR/MGE/virulence/prophage modules
 # Paths below are automatically updated by setup scripts.
 database_dir: "~/bacseq_db"
-database_profile: "full"
+database_profile: "standard"
 
 # Core database paths
-mash_db: "~/bacseq_db/mash/bacseq_refseq.msh"
+run_mash_precheck: false        # automatically true only if a real Mash sketch is supplied
+mash_db: ""
 gtdbtk_data: "~/bacseq_db/gtdbtk/gtdbtk_data"
 kraken2_db: "~/bacseq_db/kraken2/standard"
 kraken2_pluspf_db: "~/bacseq_db/kraken2/pluspf"
@@ -44,7 +46,7 @@ genomad_db: "~/bacseq_db/genomad"
 # Core module switches
 run_species: true
 run_decontam_screen: true
-run_auto_decontam: false   # recommended default: false; review first
+run_auto_decontam: false       # recommended default: false; review first
 run_annotation: true
 run_mlst: true
 

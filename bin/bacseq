@@ -1,36 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# BacSeq v2 command-line launcher
-# This lightweight wrapper is designed for GitHub releases and later Bioconda packaging.
+# BacSeq2 command-line launcher
+# Lightweight wrapper for GitHub releases and future Bioconda packaging.
 
 BACSEQ_ROOT="${BACSEQ_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DEFAULT_CONFIG="$BACSEQ_ROOT/config/config.yaml"
 TEMPLATE_CONFIG="$BACSEQ_ROOT/config/config.template.yaml"
 
 usage() {
-  cat <<EOF
-BacSeq v2 launcher
+  cat <<USAGE
+BacSeq2 launcher
 
 Usage:
   bacseq <command> [options]
 
 Commands:
-  init        Create a config/config.yaml from the template
-  setup-db         Download/build core databases and update config paths
-  setup-amr-mge-db Download/setup AMR, VFDB, plasmid, MGE, and prophage databases
-  check-db         Check database paths in config.yaml
-  run         Run the Snakemake workflow
-  dry-run     Test the Snakemake workflow without running jobs
-  help        Show this help message
+  init              Create config/config.yaml from the template
+  setup-db          Download/build core databases and update config paths
+  setup-amr-mge-db  Setup AMR, VFDB, plasmid, MGE, and prophage databases
+  repair-db         Repair database links/config without re-downloading large DBs
+  check-db          Check database paths in config.yaml
+  dry-run           Test the Snakemake workflow without running jobs
+  run               Run the Snakemake workflow
+  help              Show this help message
 
 Examples:
-  bacseq init
-  bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16
-  bacseq setup-amr-mge-db --db-dir ~/bacseq_db --threads 16
-  bacseq dry-run --config config/config.yaml --cores 16
-  bacseq run --config config/config.yaml --cores 16
-EOF
+  bin/bacseq init
+  bin/bacseq setup-db --db-dir /path/to/large_disk/BacSeq_DB --profile standard --threads 16
+  bin/bacseq repair-db --db-dir /path/to/large_disk/BacSeq_DB --config config/config.yaml
+  bin/bacseq setup-amr-mge-db --db-dir /path/to/large_disk/BacSeq_DB --threads 16
+  bin/bacseq check-db --config config/config.yaml
+  bin/bacseq dry-run --config config/config.yaml --cores 16 --conda-prefix /path/to/large_disk/BacSeq_Conda_Envs
+  bin/bacseq run --config config/config.yaml --cores 16 --conda-prefix /path/to/large_disk/BacSeq_Conda_Envs
+USAGE
 }
 
 cmd_init() {
@@ -38,20 +41,21 @@ cmd_init() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --out|--config) out="$2"; shift 2 ;;
-      -h|--help) echo "Usage: bacseq init [--out config/config.yaml]"; exit 0 ;;
+      --force) rm -f "$out"; shift ;;
+      -h|--help) echo "Usage: bacseq init [--out config/config.yaml] [--force]"; exit 0 ;;
       *) echo "Unknown option for init: $1" >&2; exit 1 ;;
     esac
   done
   mkdir -p "$(dirname "$out")"
   if [[ -f "$out" ]]; then
     echo "Config already exists: $out"
-    echo "Not overwriting. Delete it first or choose --out."
+    echo "Not overwriting. Use --force to replace it."
     exit 1
   fi
   if [[ -f "$TEMPLATE_CONFIG" ]]; then
     cp "$TEMPLATE_CONFIG" "$out"
   else
-    cat > "$out" <<'EOF'
+    cat > "$out" <<'CFG'
 input_dir: "fastq"
 output_dir: "results"
 mode: "short"
@@ -59,7 +63,7 @@ threads: 8
 memory_gb: 32
 database_dir: "~/bacseq_db"
 database_profile: "standard"
-EOF
+CFG
   fi
   echo "Created config: $out"
 }
@@ -72,16 +76,26 @@ cmd_setup_amr_mge_db() {
   bash "$BACSEQ_ROOT/scripts/setup_amr_mge_databases.sh" "$@"
 }
 
+cmd_repair_db() {
+  bash "$BACSEQ_ROOT/scripts/repair_databases.sh" "$@"
+}
+
 cmd_check_db() {
   local config="$DEFAULT_CONFIG"
+  local profile=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --config) config="$2"; shift 2 ;;
-      -h|--help) echo "Usage: bacseq check-db [--config config/config.yaml]"; exit 0 ;;
+      --profile) profile="$2"; shift 2 ;;
+      -h|--help) echo "Usage: bacseq check-db [--config config/config.yaml] [--profile standard|full]"; exit 0 ;;
       *) echo "Unknown option for check-db: $1" >&2; exit 1 ;;
     esac
   done
-  python3 "$BACSEQ_ROOT/scripts/check_databases.py" --config "$config"
+  if [[ -n "$profile" ]]; then
+    python3 "$BACSEQ_ROOT/scripts/check_databases.py" --config "$config" --profile "$profile"
+  else
+    python3 "$BACSEQ_ROOT/scripts/check_databases.py" --config "$config"
+  fi
 }
 
 cmd_snakemake() {
@@ -89,6 +103,7 @@ cmd_snakemake() {
   local config="$DEFAULT_CONFIG"
   local cores=8
   local extra=()
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --config) config="$2"; shift 2 ;;
@@ -96,21 +111,30 @@ cmd_snakemake() {
       *) extra+=("$1"); shift ;;
     esac
   done
+
   if ! command -v snakemake >/dev/null 2>&1; then
-    echo "ERROR: snakemake not found. Activate the BacSeq conda environment first." >&2
+    echo "ERROR: snakemake not found. Activate the BacSeq2 conda environment first." >&2
     exit 1
   fi
-  local dry=""
+
+  local dry=()
   if [[ "$mode" == "dry-run" ]]; then
-    dry="--dry-run"
+    dry=(--dry-run)
   fi
+
+  if [[ ! -f "$BACSEQ_ROOT/Snakefile" ]]; then
+    echo "ERROR: Snakefile not found at $BACSEQ_ROOT/Snakefile" >&2
+    echo "This package contains helper scripts. Make sure your BacSeq2 repository includes the main Snakefile." >&2
+    exit 1
+  fi
+
   snakemake \
     --snakefile "$BACSEQ_ROOT/Snakefile" \
     --configfile "$config" \
     --cores "$cores" \
     --use-conda \
     --rerun-incomplete \
-    $dry \
+    "${dry[@]}" \
     "${extra[@]}"
 }
 
@@ -118,6 +142,7 @@ case "${1:-help}" in
   init) shift; cmd_init "$@" ;;
   setup-db) shift; cmd_setup_db "$@" ;;
   setup-amr-mge-db) shift; cmd_setup_amr_mge_db "$@" ;;
+  repair-db) shift; cmd_repair_db "$@" ;;
   check-db) shift; cmd_check_db "$@" ;;
   run) shift; cmd_snakemake run "$@" ;;
   dry-run) shift; cmd_snakemake dry-run "$@" ;;

@@ -19,6 +19,26 @@
 
 ---
 
+
+## 2026-05 hotfix: robust database setup
+
+This release updates the whole database setup layer. It fixes three common first-run problems:
+
+1. **GTDB-Tk root detection** now points `gtdbtk_data` to the release root folder, not `release*/metadata`.
+2. **Interrupted downloads** are detected by gzip validation before extraction, preventing `Unexpected EOF` errors from incomplete `.tar.gz` files.
+3. **Mash pre-check** is disabled automatically unless a real Mash sketch is supplied with `--mash-fasta`; BacSeq2 no longer silently treats an empty placeholder as a valid species database.
+
+If you already downloaded GTDB-Tk and only need to repair links/config, run:
+
+```bash
+bin/bacseq repair-db \
+  --db-dir /path/to/large_disk/BacSeq_DB \
+  --profile standard \
+  --config config/config.yaml
+
+bin/bacseq check-db --config config/config.yaml
+```
+
 ## Overview
 
 **BacSeq2** is a modular bacterial genome analysis workflow for routine bacterial WGS, research-grade genome characterization, and publication-ready reporting.
@@ -131,17 +151,15 @@ help
 
 ## Recommended installation using a large disk
 
-If your home directory has limited space, place databases, conda environments, and results on a large disk.
-
-Example for your workstation:
+If your home directory has limited space, place the BacSeq2 repository, databases, Snakemake conda environments, and results on a large disk. Replace `/path/to/large_disk` with your own storage path.
 
 ```bash
-mkdir -p /media/mecob/komwit/BacSeq2 \
-         /media/mecob/komwit/BacSeq_DB \
-         /media/mecob/komwit/BacSeq_Conda_Envs \
-         /media/mecob/komwit/BacSeq_Results
+mkdir -p /path/to/large_disk/BacSeq2 \
+         /path/to/large_disk/BacSeq_DB \
+         /path/to/large_disk/BacSeq_Conda_Envs \
+         /path/to/large_disk/BacSeq_Results
 
-cd /media/mecob/komwit/BacSeq2
+cd /path/to/large_disk/BacSeq2
 
 git clone https://github.com/komwits-dev/BacSeq2.git
 cd BacSeq2
@@ -159,7 +177,42 @@ chmod +x bin/bacseq scripts/*.sh scripts/*.py
 bin/bacseq init
 ```
 
----
+Core database setup:
+
+```bash
+bin/bacseq setup-db \
+  --db-dir /path/to/large_disk/BacSeq_DB \
+  --profile standard \
+  --threads 16 \
+  --config config/config.yaml
+```
+
+Full AMR/MGE database setup:
+
+```bash
+bin/bacseq setup-amr-mge-db \
+  --db-dir /path/to/large_disk/BacSeq_DB \
+  --threads 16 \
+  --config config/config.yaml
+
+source /path/to/large_disk/BacSeq_DB/activate_bacseq_db.sh
+bin/bacseq check-db --config config/config.yaml
+```
+
+Run with Snakemake conda environments outside Home:
+
+```bash
+bin/bacseq dry-run \
+  --config config/config.yaml \
+  --cores 16 \
+  --conda-prefix /path/to/large_disk/BacSeq_Conda_Envs
+
+bin/bacseq run \
+  --config config/config.yaml \
+  --cores 16 \
+  --conda-prefix /path/to/large_disk/BacSeq_Conda_Envs
+```
+
 
 ## Database setup
 
