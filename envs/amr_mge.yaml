@@ -1,0 +1,30 @@
+name: bacseq_amr_mge
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - pyyaml
+  - biopython
+  - blast
+  - diamond
+  - hmmer
+  - prodigal
+  - seqkit
+  - samtools
+  - bedtools
+  - ncbi-amrfinderplus
+  - rgi
+  - resfinder
+  - abricate
+  - mob_suite
+  - plasmidfinder
+  - integron_finder
+  - isescan
+  - phigaro
+  - genomad
+  - pip
+  - pip:
+      - MobileElementFinder

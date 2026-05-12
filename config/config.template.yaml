@@ -1,5 +1,5 @@
-# BacSeq v2 configuration template
-# Copy this file to config/config.yaml and edit only the input/output settings.
+# BacSeq2 configuration template
+# Copy this file to config/config.yaml and edit input/output settings first.
 
 # Input/output
 input_dir: "fastq"
@@ -11,12 +11,12 @@ memory_gb: 32
 # Database profile
 # minimal  = testing only
 # standard = routine bacterial WGS
-# full     = publication-level annotation
-# Paths below are automatically updated by: bacseq setup-db
+# full     = publication-level annotation with AMR/MGE/virulence/prophage modules
+# Paths below are automatically updated by setup scripts.
 database_dir: "~/bacseq_db"
-database_profile: "standard"
+database_profile: "full"
 
-# Automatically managed database paths
+# Core database paths
 mash_db: "~/bacseq_db/mash/bacseq_refseq.msh"
 gtdbtk_data: "~/bacseq_db/gtdbtk/gtdbtk_data"
 kraken2_db: "~/bacseq_db/kraken2/standard"
@@ -26,21 +26,50 @@ busco_db_path: "auto"
 eggnog_db: "~/bacseq_db/eggnog"
 cazyme_db: "~/bacseq_db/dbcan"
 phastest_db: "~/bacseq_db/phastest"
-vfdb_path: "~/bacseq_db/vfdb/VFDB_setB_pro.fas"
-plasmidfinder_db: "~/bacseq_db/plasmidfinder"
-amrfinder_db: "~/bacseq_db/amrfinderplus"
 
-# Module switches
+# AMR, virulence, plasmid, MGE, and prophage database paths
+amrfinder_db: "~/bacseq_db/amrfinderplus"
+card_rgi_db: "~/bacseq_db/card_rgi"
+resfinder_db: "~/bacseq_db/resfinder_db"
+pointfinder_db: "~/bacseq_db/pointfinder_db"
+vfdb_nt: "~/bacseq_db/vfdb/VFDB_setB_nt.fas"
+vfdb_prot: "~/bacseq_db/vfdb/VFDB_setB_pro.fas"
+vfdb_diamond_db: "~/bacseq_db/vfdb/VFDB_setB_pro.dmnd"
+mob_suite_db: "~/bacseq_db/mob_suite"
+plasmidfinder_db: "~/bacseq_db/plasmidfinder_db"
+mefinder_db: "~/bacseq_db/mobileelementfinder"
+phigaro_db: "~/bacseq_db/phigaro"
+genomad_db: "~/bacseq_db/genomad"
+
+# Core module switches
 run_species: true
 run_decontam_screen: true
 run_auto_decontam: false   # recommended default: false; review first
 run_annotation: true
-run_amr: true
 run_mlst: true
-run_plasmid: true
+
+# AMR comparison layer
+run_amr: true
+run_amrfinderplus: true
+run_card_rgi: true
+run_resfinder: true
+run_amr_consensus: true
+
+# Virulence, plasmids, MGE, and phage
 run_virulence: true
+run_vfdb: true
+run_plasmid: true
+run_mob_suite: true
+run_plasmidfinder: true
 run_mge: true
-run_prophage: false
+run_mobileelementfinder: true
+run_integronfinder: true
+run_isescan: true
+run_prophage: true
+run_phigaro: true
+run_genomad: false
+
+# Optional functional/comparative modules
 run_cazyme: false
 run_comparative: false
 
@@ -50,3 +79,11 @@ run_comparative: false
 contamination_policy: "review_only"
 minimum_contig_length: 500
 minimum_contaminant_confidence: 0.90
+
+# AMR/MGE thresholds
+amr_min_identity: 90
+amr_min_coverage: 60
+vfdb_min_identity: 80
+vfdb_min_coverage: 60
+mge_min_identity: 80
+mge_min_coverage: 60

@@ -65,8 +65,16 @@ def main() -> None:
         checks.extend([
             ("eggnog_db", "dir", "eggNOG database"),
             ("cazyme_db", "dir", "dbCAN database"),
-            ("vfdb_path", "file", "VFDB protein database"),
+            ("card_rgi_db", "dir", "CARD/RGI local database folder"),
+            ("resfinder_db", "dir", "ResFinder database"),
+            ("pointfinder_db", "dir", "PointFinder database"),
+            ("vfdb_nt", "file", "VFDB nucleotide database"),
+            ("vfdb_prot", "file", "VFDB protein database"),
+            ("mob_suite_db", "dir", "MOB-suite database"),
             ("plasmidfinder_db", "dir", "PlasmidFinder database"),
+            ("mefinder_db", "dir", "MobileElementFinder folder"),
+            ("phigaro_db", "dir", "Phigaro database/config folder"),
+            ("genomad_db", "dir", "geNomad database folder"),
             ("phastest_db", "dir", "PHASTEST/PHASTER local database folder"),
         ])
 

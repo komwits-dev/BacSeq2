@@ -37,8 +37,18 @@ def database_values(db_dir: Path, profile: str) -> Dict[str, str]:
         "cazyme_db": str(db_dir / "dbcan"),
         "phastest_db": str(db_dir / "phastest"),
         "vfdb_path": str(db_dir / "vfdb" / "VFDB_setB_pro.fas"),
-        "plasmidfinder_db": str(db_dir / "plasmidfinder"),
         "amrfinder_db": str(db_dir / "amrfinderplus"),
+        "card_rgi_db": str(db_dir / "card_rgi"),
+        "resfinder_db": str(db_dir / "resfinder_db"),
+        "pointfinder_db": str(db_dir / "pointfinder_db"),
+        "vfdb_nt": str(db_dir / "vfdb" / "VFDB_setB_nt.fas"),
+        "vfdb_prot": str(db_dir / "vfdb" / "VFDB_setB_pro.fas"),
+        "vfdb_diamond_db": str(db_dir / "vfdb" / "VFDB_setB_pro.dmnd"),
+        "mob_suite_db": str(db_dir / "mob_suite"),
+        "plasmidfinder_db": str(db_dir / "plasmidfinder_db"),
+        "mefinder_db": str(db_dir / "mobileelementfinder"),
+        "phigaro_db": str(db_dir / "phigaro"),
+        "genomad_db": str(db_dir / "genomad"),
     }
     return values
 

@@ -17,8 +17,9 @@ Usage:
 
 Commands:
   init        Create a config/config.yaml from the template
-  setup-db    Download/build databases and update config paths
-  check-db    Check database paths in config.yaml
+  setup-db         Download/build core databases and update config paths
+  setup-amr-mge-db Download/setup AMR, VFDB, plasmid, MGE, and prophage databases
+  check-db         Check database paths in config.yaml
   run         Run the Snakemake workflow
   dry-run     Test the Snakemake workflow without running jobs
   help        Show this help message
@@ -26,6 +27,7 @@ Commands:
 Examples:
   bacseq init
   bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16
+  bacseq setup-amr-mge-db --db-dir ~/bacseq_db --threads 16
   bacseq dry-run --config config/config.yaml --cores 16
   bacseq run --config config/config.yaml --cores 16
 EOF
@@ -64,6 +66,10 @@ EOF
 
 cmd_setup_db() {
   bash "$BACSEQ_ROOT/scripts/setup_databases.sh" "$@"
+}
+
+cmd_setup_amr_mge_db() {
+  bash "$BACSEQ_ROOT/scripts/setup_amr_mge_databases.sh" "$@"
 }
 
 cmd_check_db() {
@@ -111,6 +117,7 @@ cmd_snakemake() {
 case "${1:-help}" in
   init) shift; cmd_init "$@" ;;
   setup-db) shift; cmd_setup_db "$@" ;;
+  setup-amr-mge-db) shift; cmd_setup_amr_mge_db "$@" ;;
   check-db) shift; cmd_check_db "$@" ;;
   run) shift; cmd_snakemake run "$@" ;;
   dry-run) shift; cmd_snakemake dry-run "$@" ;;

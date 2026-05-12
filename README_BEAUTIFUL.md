@@ -1,125 +1,117 @@
-# BacSeq v2
-
 <p align="center">
-  <img src="docs/assets/bacseq_v2_workflow.png" alt="BacSeq v2 workflow" width="100%">
+  <h1 align="center">BacSeq2</h1>
+  <p align="center">
+    <b>Automated bacterial whole-genome sequencing analysis with species identification, contamination review, AMR consensus, virulence screening, plasmid/MGE context, prophage detection, and interactive HTML reporting.</b>
+  </p>
 </p>
 
-<h2 align="center">Automated bacterial whole-genome sequencing analysis with review-first contamination screening and interactive reporting</h2>
+<p align="center">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20HPC-blue">
+  <img alt="Workflow" src="https://img.shields.io/badge/workflow-Snakemake-green">
+  <img alt="Install" src="https://img.shields.io/badge/install-Conda%20%7C%20Mamba-orange">
+  <img alt="AMR" src="https://img.shields.io/badge/AMR-AMRFinderPlus%20%7C%20CARD--RGI%20%7C%20ResFinder-red">
+  <img alt="MGE" src="https://img.shields.io/badge/MGE-MOB--suite%20%7C%20MobileElementFinder%20%7C%20Phigaro-purple">
+</p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-v2.0-1f7a60?style=for-the-badge">
-  <img alt="workflow" src="https://img.shields.io/badge/workflow-Snakemake-0ca6df?style=for-the-badge">
-  <img alt="species" src="https://img.shields.io/badge/species-Mash%20%2B%20GTDB--Tk-087f78?style=for-the-badge">
-  <img alt="platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20WSL2%20%7C%20HPC-7950f2?style=for-the-badge">
-  <img alt="license" src="https://img.shields.io/badge/license-MIT-8ac926?style=for-the-badge">
+  <img src="docs/assets/bacseq2_amr_mge_workflow.png" alt="BacSeq2 workflow" width="95%">
 </p>
 
 ---
 
-## Why BacSeq v2?
+## Overview
 
-**BacSeq v2** is a modular bacterial genome analysis workflow designed to transform raw bacterial WGS reads into a clear, reproducible, and shareable genome interpretation report.
+**BacSeq2** is a modular bacterial genome analysis workflow for routine bacterial WGS, research-grade genome characterization, and publication-ready reporting.
 
-The core idea is simple:
+The updated BacSeq2 design adds a **multi-tool interpretation layer** instead of relying on a single database or software output. This is especially important for AMR, virulence, plasmids, mobile genetic elements, and prophages.
 
-> **Identify the species first, screen contamination before interpretation, then generate an interactive report that researchers and clinicians can easily review.**
+Major goals:
 
-BacSeq v2 is especially suitable for bacterial isolate WGS projects involving species confirmation, assembly quality assessment, AMR gene screening, plasmid/virulence marker detection, MLST, and publication-ready genome summaries.
+- Identify species before interpretation using **Mash** and **GTDB-Tk**.
+- Detect possible contamination before downstream interpretation.
+- Compare AMR evidence from **AMRFinderPlus**, **CARD/RGI**, and **ResFinder**.
+- Screen virulence genes using **VFDB**.
+- Characterize plasmids with **MOB-suite** and optional **PlasmidFinder**.
+- Detect mobile genetic elements using **MobileElementFinder**, **IntegronFinder**, and **ISEScan**.
+- Detect prophages using **Phigaro**, with optional **geNomad/PhiSpy** as future modules.
+- Generate an interactive HTML report with sortable tables and module summaries.
 
-> **Important:** BacSeq v2 provides genomic interpretation only. AMR results should not replace phenotypic antimicrobial susceptibility testing or local clinical decision-making.
-
----
-
-## Key features
-
-| Feature | Description |
-|---|---|
-| **Species-first analysis** | Rapid Mash pre-check followed by GTDB-Tk genome-level classification |
-| **Review-first contamination screening** | Candidate contaminant contigs are reported before any removal decision |
-| **Flexible assembly mode** | Supports short-read, long-read, and hybrid assembly design |
-| **Genome quality summary** | Assembly metrics, completeness, contamination indicators, and quality flags |
-| **Annotation and feature profiling** | Prokka/functional annotation, AMR, MLST, plasmid, virulence, MGE, prophage, and optional CAZyme modules |
-| **Interactive HTML report** | Shareable project-level report with summary cards, plots, and result tables |
-| **Snakemake backend** | Reproducible, resumable, and scalable execution on workstation or HPC |
-| **Automatic database setup** | `bacseq setup-db` prepares paths and database profiles for users |
+> **Important:** BacSeq2 is a research workflow. Genomic AMR outputs should be reported as *predicted AMR determinants* and should not replace phenotypic antimicrobial susceptibility testing or local clinical interpretation.
 
 ---
 
-## Workflow overview
+## Key modules
 
-<p align="center">
-  <img src="docs/assets/bacseq_v2_workflow.png" alt="BacSeq v2 workflow diagram" width="96%">
-</p>
-
-BacSeq v2 follows a **reviewable analysis model**. Contamination candidates are flagged and summarized, but the default policy is not to remove contigs automatically.
-
-```yaml
-contamination_policy: "review_only"
-run_auto_decontam: false
-```
-
-This protects biologically important plasmids, prophages, and mobile genetic elements from accidental removal.
-
----
-
-## Recommended repository layout
-
-```text
-BacSeq-v2/
-├── bin/
-│   └── bacseq
-├── Snakefile
-├── config/
-│   ├── config.template.yaml
-│   └── config.yaml
-├── envs/
-│   ├── bacseq_core.yaml
-│   └── database_tools.yaml
-├── scripts/
-│   ├── setup_databases.sh
-│   ├── update_config_paths.py
-│   └── check_databases.py
-├── report/
-│   └── templates/
-│       └── report.html.j2
-├── docs/
-│   ├── INSTALL_DATABASES.md
-│   ├── WORKFLOW.md
-│   └── assets/
-│       ├── bacseq_v2_workflow.png
-│       └── bacseq_v2_workflow.svg
-└── README.md
-```
+| Category | Main tools | Output |
+|---|---|---|
+| Read QC | FastQC, fastp, MultiQC | read quality summary, trimmed reads |
+| Assembly | SPAdes, Unicycler, Flye-ready | final assembly FASTA |
+| Species ID | Mash, GTDB-Tk | read-level pre-check, genome-level taxonomy, concordance flag |
+| Contamination review | Kraken2, coverage/GC summaries | candidate contaminants, review tables, blob-style plots |
+| Annotation | Prokka/Bakta-ready | GFF, FAA, FNA, gene table |
+| AMR consensus | AMRFinderPlus, CARD/RGI, ResFinder | merged AMR table, tool agreement, disagreement flags |
+| Virulence | VFDB via BLAST/DIAMOND or ABRicate | virulence factor table |
+| Plasmids | MOB-suite, PlasmidFinder optional | plasmid reconstruction, replicon/relaxase/mobility |
+| Mobile elements | MobileElementFinder, IntegronFinder, ISEScan | MGEs, integrons, insertion sequences |
+| Prophage | Phigaro; optional geNomad/PhiSpy | prophage regions, prophage maps |
+| Report | Jinja2 + Plotly/DataTables-ready | `results/report/index.html` |
 
 ---
 
 ## Installation
 
-### 1. Clone BacSeq v2
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/BacSeq-v2.git
-cd BacSeq-v2
+git clone https://github.com/komwits-dev/BacSeq2.git
+cd BacSeq2
 ```
 
-### 2. Create the BacSeq environment
+### 2. Configure Bioconda channels
 
-Using **mamba** is recommended.
+```bash
+conda config --add channels conda-forge
+conda config --add channels bioconda
+conda config --set channel_priority strict
+```
+
+### 3. Install mamba
+
+```bash
+conda install -n base -c conda-forge mamba -y
+```
+
+### 4. Create the main BacSeq2 environment
 
 ```bash
 mamba env create -f envs/bacseq_core.yaml
 conda activate bacseq_v2_core
 ```
 
-If `mamba` is not installed:
+### 5. Create the AMR/MGE module environment
 
 ```bash
-conda install -n base -c conda-forge mamba -y
+mamba env create -f envs/amr_mge.yaml
 ```
 
-### 3. Check the launcher
+If environment solving fails because of optional tools, use the fallback command:
 
 ```bash
+mamba create -n bacseq_amr_mge \
+  -c conda-forge -c bioconda \
+  python=3.11 pandas pyyaml biopython blast diamond hmmer prodigal seqkit samtools bedtools \
+  ncbi-amrfinderplus rgi resfinder abricate mob_suite integron_finder isescan phigaro genomad \
+  pip -y
+
+conda activate bacseq_amr_mge
+pip install MobileElementFinder
+conda deactivate
+```
+
+### 6. Check the launcher
+
+```bash
+conda activate bacseq_v2_core
 chmod +x bin/bacseq scripts/*.sh scripts/*.py
 bin/bacseq help
 ```
@@ -137,33 +129,169 @@ help
 
 ---
 
-## Quick start
+## Recommended installation using a large disk
 
-### Step 1. Create a config file
+If your home directory has limited space, place databases, conda environments, and results on a large disk.
+
+Example for your workstation:
 
 ```bash
+mkdir -p /media/mecob/komwit/BacSeq2 \
+         /media/mecob/komwit/BacSeq_DB \
+         /media/mecob/komwit/BacSeq_Conda_Envs \
+         /media/mecob/komwit/BacSeq_Results
+
+cd /media/mecob/komwit/BacSeq2
+
+git clone https://github.com/komwits-dev/BacSeq2.git
+cd BacSeq2
+
+conda config --add channels conda-forge
+conda config --add channels bioconda
+conda config --set channel_priority strict
+conda install -n base -c conda-forge mamba -y
+
+mamba env create -f envs/bacseq_core.yaml
+mamba env create -f envs/amr_mge.yaml
+
+conda activate bacseq_v2_core
+chmod +x bin/bacseq scripts/*.sh scripts/*.py
 bin/bacseq init
 ```
 
-This creates:
+---
+
+## Database setup
+
+BacSeq2 uses database profiles so users do not need to download everything for every analysis.
+
+| Profile | Best for | Includes |
+|---|---|---|
+| `minimal` | workflow testing | folder setup and config paths only |
+| `standard` | routine bacterial WGS | Mash path, GTDB-Tk, Kraken2, taxdump, AMRFinderPlus |
+| `full` | publication-level report | standard + CARD/RGI, ResFinder, VFDB, MOB-suite, PlasmidFinder, MobileElementFinder-ready folders, Phigaro/geNomad-ready folders, eggNOG/dbCAN optional |
+
+### Standard database setup
+
+```bash
+conda activate bacseq_v2_core
+
+bin/bacseq setup-db \
+  --db-dir /media/mecob/komwit/BacSeq_DB \
+  --profile standard \
+  --threads 16 \
+  --config config/config.yaml
+```
+
+### Full AMR/MGE database setup
+
+```bash
+conda activate bacseq_v2_core
+
+bin/bacseq setup-amr-mge-db \
+  --db-dir /media/mecob/komwit/BacSeq_DB \
+  --threads 16 \
+  --config config/config.yaml
+```
+
+Then activate database variables:
+
+```bash
+source /media/mecob/komwit/BacSeq_DB/activate_bacseq_db.sh
+```
+
+Make the path permanent:
+
+```bash
+echo 'export BACSEQ_DB="/media/mecob/komwit/BacSeq_DB"' >> ~/.bashrc
+echo 'export GTDBTK_DATA_PATH="/media/mecob/komwit/BacSeq_DB/gtdbtk/gtdbtk_data"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Check database paths:
+
+```bash
+bin/bacseq check-db --config config/config.yaml
+```
+
+---
+
+## Configuration
+
+Main config file:
 
 ```text
 config/config.yaml
 ```
 
-Edit the basic settings:
+Core settings:
 
 ```yaml
 input_dir: "fastq"
-output_dir: "results"
+output_dir: "/media/mecob/komwit/BacSeq_Results"
 mode: "short"
 threads: 16
 memory_gb: 64
+
+database_dir: "/media/mecob/komwit/BacSeq_DB"
+database_profile: "full"
+```
+
+Recommended module switches:
+
+```yaml
+# Species and QC
+run_species: true
+run_decontam_screen: true
+run_auto_decontam: false
+run_annotation: true
+run_mlst: true
+
+# AMR comparison layer
+run_amr: true
+run_amrfinderplus: true
+run_card_rgi: true
+run_resfinder: true
+run_amr_consensus: true
+
+# Virulence, plasmids, mobile elements, phage
+run_virulence: true
+run_vfdb: true
+run_plasmid: true
+run_mob_suite: true
+run_plasmidfinder: true
+run_mge: true
+run_mobileelementfinder: true
+run_integronfinder: true
+run_isescan: true
+run_prophage: true
+run_phigaro: true
+run_genomad: false
+
+# Optional functional modules
+run_cazyme: false
+run_comparative: false
+```
+
+Database paths automatically managed by setup scripts:
+
+```yaml
+amrfinder_db: "/media/mecob/komwit/BacSeq_DB/amrfinderplus"
+card_rgi_db: "/media/mecob/komwit/BacSeq_DB/card_rgi"
+resfinder_db: "/media/mecob/komwit/BacSeq_DB/resfinder_db"
+pointfinder_db: "/media/mecob/komwit/BacSeq_DB/pointfinder_db"
+vfdb_nt: "/media/mecob/komwit/BacSeq_DB/vfdb/VFDB_setB_nt.fas"
+vfdb_prot: "/media/mecob/komwit/BacSeq_DB/vfdb/VFDB_setB_pro.fas"
+mob_suite_db: "/media/mecob/komwit/BacSeq_DB/mob_suite"
+plasmidfinder_db: "/media/mecob/komwit/BacSeq_DB/plasmidfinder_db"
+mefinder_db: "/media/mecob/komwit/BacSeq_DB/mobileelementfinder"
+phigaro_db: "/media/mecob/komwit/BacSeq_DB/phigaro"
+genomad_db: "/media/mecob/komwit/BacSeq_DB/genomad"
 ```
 
 ---
 
-### Step 2. Prepare input FASTQ files
+## Input files
 
 For paired-end Illumina reads:
 
@@ -175,7 +303,7 @@ fastq/
 └── Sample02_R2.fastq.gz
 ```
 
-Supported naming examples:
+Supported naming patterns:
 
 ```text
 Sample_R1.fastq.gz / Sample_R2.fastq.gz
@@ -185,150 +313,261 @@ Sample_R1_001.fastq.gz / Sample_R2_001.fastq.gz
 
 ---
 
-### Step 3. Set up databases automatically
+## Run BacSeq2
 
-For most bacterial WGS projects, use the **standard** database profile:
-
-```bash
-bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile standard \
-  --threads 16 \
-  --config config/config.yaml
-```
-
-Activate database environment variables:
+### Dry run
 
 ```bash
-source ~/bacseq_db/activate_bacseq_db.sh
-```
+conda activate bacseq_v2_core
+source /media/mecob/komwit/BacSeq_DB/activate_bacseq_db.sh
 
-Check database paths:
-
-```bash
-bin/bacseq check-db --config config/config.yaml
-```
-
----
-
-### Step 4. Dry run
-
-Always test the workflow before running analysis:
-
-```bash
 bin/bacseq dry-run \
   --config config/config.yaml \
-  --cores 16
+  --cores 16 \
+  --conda-prefix /media/mecob/komwit/BacSeq_Conda_Envs
 ```
 
----
-
-### Step 5. Run BacSeq v2
+### Real run
 
 ```bash
 bin/bacseq run \
   --config config/config.yaml \
-  --cores 16
+  --cores 16 \
+  --conda-prefix /media/mecob/komwit/BacSeq_Conda_Envs
 ```
 
-If the run is interrupted, simply run the same command again. Snakemake will continue from completed steps whenever possible.
-
----
-
-## Database profiles
-
-| Profile | Best for | Main content |
-|---|---|---|
-| `minimal` | Testing the launcher and config structure | Placeholder folders and path setup |
-| `standard` | Routine bacterial WGS analysis | Mash, GTDB-Tk, Kraken2, NCBI taxdump, AMRFinderPlus path setup |
-| `full` | Publication-level genome characterization | Standard profile plus eggNOG, dbCAN, VFDB, PlasmidFinder, and PHASTEST folder |
-
-### Minimal profile
+For a high-core server:
 
 ```bash
-bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile minimal \
-  --config config/config.yaml
-```
-
-### Standard profile
-
-```bash
-bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile standard \
-  --threads 16 \
-  --config config/config.yaml
-```
-
-### Full profile
-
-```bash
-bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile full \
-  --threads 32 \
-  --config config/config.yaml
-```
-
-> The full profile may require large storage capacity and long download time.
-
----
-
-## Configuration example
-
-```yaml
-# Input/output
-input_dir: "fastq"
-output_dir: "results"
-mode: "short"
-threads: 16
-memory_gb: 64
-
-# Database settings managed by bacseq setup-db
-database_dir: "/home/user/bacseq_db"
-database_profile: "standard"
-
-# Main modules
-run_species: true
-run_decontam_screen: true
-run_auto_decontam: false
-run_annotation: true
-run_amr: true
-run_mlst: true
-run_plasmid: true
-run_virulence: true
-run_mge: true
-run_prophage: false
-run_cazyme: false
-run_comparative: false
-
-# Contamination policy
-contamination_policy: "review_only"
-minimum_contig_length: 500
-minimum_contaminant_confidence: 0.90
+bin/bacseq run \
+  --config config/config.yaml \
+  --cores 48 \
+  --conda-prefix /media/mecob/komwit/BacSeq_Conda_Envs
 ```
 
 ---
 
-## Sequencing modes
+## Individual module commands
 
-| Mode | Input type | Typical assembler design |
-|---|---|---|
-| `short` | Illumina paired-end reads | SPAdes-based assembly |
-| `long` | Nanopore/PacBio reads | long-read assembly + polishing |
-| `hybrid` | Illumina + Nanopore/PacBio | hybrid assembly / polishing workflow |
+These commands are useful for testing each module before connecting it to Snakemake.
 
-All modes should produce one unified downstream file:
+### AMRFinderPlus
+
+```bash
+amrfinder_update --database /media/mecob/komwit/BacSeq_DB/amrfinderplus
+
+amrfinder \
+  --nucleotide results/assembly/Sample01/final.fasta \
+  --database /media/mecob/komwit/BacSeq_DB/amrfinderplus \
+  --output results/amr/Sample01/amrfinderplus.tsv \
+  --threads 16
+```
+
+### CARD/RGI
+
+```bash
+rgi main \
+  --input_sequence results/assembly/Sample01/final.fasta \
+  --output_file results/amr/Sample01/card_rgi \
+  --input_type contig \
+  --local \
+  --clean \
+  --num_threads 16
+```
+
+### ResFinder
+
+```bash
+run_resfinder.py \
+  -ifa results/assembly/Sample01/final.fasta \
+  -o results/amr/Sample01/resfinder \
+  -s "Other" \
+  -db_res /media/mecob/komwit/BacSeq_DB/resfinder_db \
+  -acq
+```
+
+For species with PointFinder support, replace `"Other"` with the correct species name and add the point mutation database:
+
+```bash
+run_resfinder.py \
+  -ifa results/assembly/Sample01/final.fasta \
+  -o results/amr/Sample01/resfinder \
+  -s "Escherichia coli" \
+  -db_res /media/mecob/komwit/BacSeq_DB/resfinder_db \
+  -db_point /media/mecob/komwit/BacSeq_DB/pointfinder_db \
+  -acq -c
+```
+
+### VFDB virulence screening
+
+Using ABRicate:
+
+```bash
+abricate \
+  --db vfdb \
+  results/assembly/Sample01/final.fasta \
+  > results/virulence/Sample01/vfdb_abricate.tsv
+```
+
+Using DIAMOND against VFDB protein database:
+
+```bash
+diamond blastx \
+  --query results/assembly/Sample01/final.fasta \
+  --db /media/mecob/komwit/BacSeq_DB/vfdb/VFDB_setB_pro.dmnd \
+  --out results/virulence/Sample01/vfdb_diamond.tsv \
+  --outfmt 6 qseqid sseqid pident length qlen slen evalue bitscore stitle \
+  --threads 16
+```
+
+### MOB-suite plasmid reconstruction and typing
+
+```bash
+mob_init -d /media/mecob/komwit/BacSeq_DB/mob_suite
+
+mob_recon \
+  --infile results/assembly/Sample01/final.fasta \
+  --outdir results/plasmids/Sample01/mob_recon \
+  --num_threads 16
+```
+
+### PlasmidFinder
+
+```bash
+plasmidfinder.py \
+  -i results/assembly/Sample01/final.fasta \
+  -o results/plasmids/Sample01/plasmidfinder \
+  -p /media/mecob/komwit/BacSeq_DB/plasmidfinder_db \
+  -x
+```
+
+### MobileElementFinder / MEFinder
+
+```bash
+mefinder find \
+  --contig results/assembly/Sample01/final.fasta \
+  results/mge/Sample01/mobileelementfinder
+```
+
+### IntegronFinder
+
+```bash
+integron_finder \
+  results/assembly/Sample01/final.fasta \
+  --outdir results/mge/Sample01/integronfinder \
+  --cpu 16
+```
+
+### ISEScan
+
+```bash
+isescan.py \
+  --seqfile results/assembly/Sample01/final.fasta \
+  --output results/mge/Sample01/isescan \
+  --nthread 16
+```
+
+### Phigaro prophage detection
+
+```bash
+phigaro \
+  -f results/assembly/Sample01/final.fasta \
+  -o results/prophage/Sample01/phigaro \
+  -p \
+  --not-open
+```
+
+### Optional geNomad virus/plasmid detection
+
+```bash
+genomad download-database /media/mecob/komwit/BacSeq_DB/genomad
+
+genomad end-to-end \
+  results/assembly/Sample01/final.fasta \
+  results/mge/Sample01/genomad \
+  /media/mecob/komwit/BacSeq_DB/genomad \
+  --threads 16
+```
+
+---
+
+## AMR consensus interpretation
+
+BacSeq2 should not simply concatenate AMR outputs. The recommended interpretation is a consensus table:
 
 ```text
-assembly/{sample}/final.fasta
+sample
+contig
+start
+end
+gene_or_mutation
+antimicrobial_class
+drug
+mechanism
+amrfinderplus_hit
+card_rgi_hit
+resfinder_hit
+identity
+coverage
+prediction_confidence
+notes
+```
+
+Suggested confidence labels:
+
+| Label | Definition |
+|---|---|
+| `high_confidence` | detected by AMRFinderPlus and at least one of CARD/RGI or ResFinder, or exact curated hit |
+| `tool_specific` | detected by one tool only; keep but flag for review |
+| `mutation_call` | resistance-associated mutation; interpret species-dependently |
+| `low_identity_or_partial` | below identity/coverage thresholds; do not overinterpret |
+
+Recommended report wording:
+
+```text
+Genomic AMR determinants were predicted using AMRFinderPlus, CARD/RGI, and ResFinder. Hits supported by multiple tools were prioritized as high-confidence genomic AMR determinants. These genomic predictions should be interpreted together with phenotypic AST data when clinical interpretation is required.
 ```
 
 ---
 
-## Expected output
+## Report structure
+
+The HTML report should contain these sections:
+
+1. Sample overview
+2. Species identification and concordance warning
+3. Read QC and assembly QC
+4. Contamination review
+5. Annotation summary
+6. AMR consensus summary
+7. AMR tool comparison
+8. Virulence factors from VFDB
+9. Plasmid reconstruction and plasmid typing
+10. Mobile genetic elements
+11. Prophage regions
+12. AMR context summary
+13. Downloadable tables
+
+Expected report outputs:
+
+```text
+results/report/index.html
+results/report/tables/amr_consensus.tsv
+results/report/tables/amrfinderplus.tsv
+results/report/tables/card_rgi.tsv
+results/report/tables/resfinder.tsv
+results/report/tables/vfdb.tsv
+results/report/tables/mob_suite.tsv
+results/report/tables/plasmidfinder.tsv
+results/report/tables/mobileelementfinder.tsv
+results/report/tables/integronfinder.tsv
+results/report/tables/isescan.tsv
+results/report/tables/phigaro.tsv
+```
+
+---
+
+## Expected output folder
 
 ```text
 results/
@@ -337,248 +576,139 @@ results/
 ├── assembly/
 ├── species/
 ├── contamination/
-├── quast/
-├── busco/
 ├── annotation/
 ├── amr/
-├── mlst/
-├── plasmids/
+│   └── Sample01/
+│       ├── amrfinderplus.tsv
+│       ├── card_rgi.txt
+│       ├── resfinder/
+│       └── amr_consensus.tsv
 ├── virulence/
+│   └── Sample01/
+│       └── vfdb_abricate.tsv
+├── plasmids/
+│   └── Sample01/
+│       ├── mob_recon/
+│       └── plasmidfinder/
 ├── mge/
-├── comparative/
+│   └── Sample01/
+│       ├── mobileelementfinder/
+│       ├── integronfinder/
+│       ├── isescan/
+│       └── genomad/
+├── prophage/
+│   └── Sample01/
+│       └── phigaro/
 └── report/
-    └── index.html
+    ├── index.html
+    └── tables/
 ```
 
-Open the final report:
+---
 
-```bash
-firefox results/report/index.html
-```
+## Tools recommended for future BacSeq2 improvement
 
-Or copy this file to another computer and open it in a web browser:
+| Priority | Tool/module | Why include it? |
+|---|---|---|
+| Very high | **Bakta** | modern bacterial annotation alternative to Prokka; useful for standardized annotation outputs |
+| Very high | **Kleborate** | excellent for *Klebsiella* species complex: virulence, resistance, K/O typing, MLST |
+| Very high | **Kaptive** | capsule/O-antigen typing for *Klebsiella* and *Acinetobacter* |
+| Very high | **SeqSero2** | *Salmonella* serotype prediction |
+| High | **ECTyper** | *E. coli* serotype prediction |
+| High | **SISTR** | *Salmonella* typing and serovar prediction |
+| High | **SCCmecFinder/spaTyper** | important for *Staphylococcus aureus* |
+| High | **Kleborate + MOB-suite AMR context** | useful for linking resistance and plasmid context in Enterobacterales |
+| High | **geNomad** | fast virus/plasmid/provirus identification; good complement to Phigaro/MOB-suite |
+| High | **PhiSpy** | useful second prophage caller, especially for bacterial isolate genomes |
+| High | **IntegronFinder** | integrons are important AMR mobilization structures |
+| High | **ISEScan** | insertion sequence detection and transposase-rich genome interpretation |
+| Medium | **Panaroo/PIRATE** | pangenome comparison when multiple isolates are provided |
+| Medium | **Snippy/cgSNP pipeline** | outbreak/cluster SNP analysis |
+| Medium | **fastANI/skani** | fast genome identity and outlier checking |
+| Medium | **CheckM2/GUNC** | genome quality and contamination checks for large/public datasets |
+| Medium | **MLST + chewBBACA/cgMLST** | standardized typing for outbreak collections |
+
+Recommended development order:
 
 ```text
-results/report/index.html
-```
-
----
-
-## Report contents
-
-The final HTML report is designed to include:
-
-| Section | Content |
-|---|---|
-| Project overview | Sample names, run settings, database profile, pipeline version |
-| Species identification | Mash pre-check, GTDB-Tk classification, concordance warning |
-| Assembly quality | Contig number, N50, genome size, GC content, BUSCO/QUAST metrics |
-| Contamination screening | Candidate contaminant contigs, taxonomy, coverage, GC, review status |
-| Genome annotation | CDS, rRNA, tRNA, functional summary |
-| AMR profile | AMR genes, resistance-associated mutations, genomic determinants |
-| Typing | MLST and species-specific typing when available |
-| Plasmid/virulence/MGE | Plasmid markers, virulence genes, integrons, prophage, mobile elements |
-| Export tables | TSV/JSON/HTML-ready summaries |
-
----
-
-## Contamination policy
-
-BacSeq v2 separates **screening** from **removal**.
-
-### Default mode: review-only
-
-```yaml
-contamination_policy: "review_only"
-run_auto_decontam: false
-```
-
-Generated files may include:
-
-```text
-candidate_contaminants.tsv
-contamination_summary.tsv
-contig_taxonomy.tsv
-contig_coverage.tsv
-blob_style_plot.html
-```
-
-### Optional strict mode
-
-```yaml
-contamination_policy: "strict"
-run_auto_decontam: true
-minimum_contaminant_confidence: 0.90
-```
-
-Strict mode should preserve removed contigs:
-
-```text
-filtered_assembly.fasta
-quarantine_contigs.fasta
-removed_contigs.tsv
-```
-
----
-
-## Common commands
-
-| Task | Command |
-|---|---|
-| Show help | `bin/bacseq help` |
-| Create config | `bin/bacseq init` |
-| Standard database setup | `bin/bacseq setup-db --db-dir ~/bacseq_db --profile standard --threads 16 --config config/config.yaml` |
-| Check database paths | `bin/bacseq check-db --config config/config.yaml` |
-| Dry run | `bin/bacseq dry-run --config config/config.yaml --cores 16` |
-| Run workflow | `bin/bacseq run --config config/config.yaml --cores 16` |
-| Resume workflow | Re-run the same `bin/bacseq run` command |
-
----
-
-## Complete example
-
-```bash
-# 1. Clone repository
-git clone https://github.com/YOUR_USERNAME/BacSeq-v2.git
-cd BacSeq-v2
-
-# 2. Create environment
-mamba env create -f envs/bacseq_core.yaml
-conda activate bacseq_v2_core
-
-# 3. Initialize config
-bin/bacseq init
-
-# 4. Copy FASTQ files
-mkdir -p fastq
-cp /path/to/*_R1*.fastq.gz fastq/
-cp /path/to/*_R2*.fastq.gz fastq/
-
-# 5. Set up databases
-bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile standard \
-  --threads 16 \
-  --config config/config.yaml
-
-# 6. Activate database variables
-source ~/bacseq_db/activate_bacseq_db.sh
-
-# 7. Check database paths
-bin/bacseq check-db --config config/config.yaml
-
-# 8. Test workflow
-bin/bacseq dry-run --config config/config.yaml --cores 16
-
-# 9. Run workflow
-bin/bacseq run --config config/config.yaml --cores 16
+1. Make AMRFinderPlus + CARD/RGI + ResFinder consensus stable.
+2. Add VFDB virulence table.
+3. Add MOB-suite plasmid module.
+4. Add MobileElementFinder + IntegronFinder + ISEScan MGE module.
+5. Add Phigaro prophage module.
+6. Add AMR-context integration: AMR genes on plasmid/prophage/integron contigs.
+7. Add species-specific router: Kleborate/Kaptive/SeqSero2/ECTyper/SISTR/spaTyper.
+8. Add multi-isolate comparative mode: Mash/fastANI/SNP/pangenome.
 ```
 
 ---
 
 ## Troubleshooting
 
-<details>
-<summary><b>snakemake: command not found</b></summary>
+### Home directory has no space
 
-Activate the BacSeq environment:
-
-```bash
-conda activate bacseq_v2_core
-```
-
-</details>
-
-<details>
-<summary><b>GTDBTK_DATA_PATH is not set</b></summary>
-
-Run:
-
-```bash
-source ~/bacseq_db/activate_bacseq_db.sh
-```
-
-Or manually export:
-
-```bash
-export GTDBTK_DATA_PATH="$HOME/bacseq_db/gtdbtk/gtdbtk_data"
-```
-
-</details>
-
-<details>
-<summary><b>Database check reports missing files</b></summary>
-
-Check paths:
-
-```bash
-bin/bacseq check-db --config config/config.yaml
-```
-
-Then re-run setup:
+Use a large disk:
 
 ```bash
 bin/bacseq setup-db \
-  --db-dir ~/bacseq_db \
-  --profile standard \
+  --db-dir /media/mecob/komwit/BacSeq_DB \
+  --profile full \
   --threads 16 \
   --config config/config.yaml
 ```
 
-</details>
-
-<details>
-<summary><b>Workflow stopped halfway</b></summary>
-
-Run the same command again:
+Run Snakemake with a conda prefix outside Home:
 
 ```bash
-bin/bacseq run --config config/config.yaml --cores 16
+bin/bacseq run \
+  --config config/config.yaml \
+  --cores 16 \
+  --conda-prefix /media/mecob/komwit/BacSeq_Conda_Envs
 ```
 
-Snakemake will resume from available completed outputs.
+### CARD/RGI database is missing
 
-</details>
-
-<details>
-<summary><b>Conda environment solving is slow</b></summary>
-
-Install and use mamba:
+CARD may require manual download/registration depending on the release route. Download the official CARD data, then run:
 
 ```bash
-conda install -n base -c conda-forge mamba -y
+rgi load --card_json /path/to/card.json --local
 ```
 
-</details>
+### ResFinder species error
+
+Use `-s "Other"` for acquired gene-only detection, or provide a supported species name if using PointFinder mutation detection.
+
+### Plasmid/MGE results are empty
+
+Short-read draft assemblies may fragment plasmids and MGEs. Use hybrid assembly or long-read data when plasmid reconstruction is biologically important.
 
 ---
 
-## Development roadmap
+## Citation note
 
-- [ ] Add small public test dataset
-- [ ] Add GitHub Actions validation
-- [ ] Add offline self-contained report assets
-- [ ] Add species-specific typing router
-- [ ] Add Bioconda recipe after end-to-end tests
-- [ ] Add Java GUI mode that writes `config.yaml` and launches Snakemake
-
----
-
-## Citation
-
-If you use BacSeq v2 in a publication, please cite the BacSeq v2 GitHub repository and the final software paper when available.
-
-Suggested wording:
+Please cite BacSeq2 and the individual tools/databases used in your analysis report. At minimum, report the versions and database release dates for:
 
 ```text
-Bacterial genome analysis was performed using BacSeq v2, a Snakemake-based workflow for bacterial WGS quality control, species identification, contamination screening, genome annotation, AMR profiling, and interactive reporting.
+AMRFinderPlus database
+CARD/RGI database
+ResFinder database
+VFDB release/download date
+MOB-suite database
+MobileElementFinder version/database
+Phigaro version/database
+GTDB-Tk release
+Kraken2 database date
 ```
 
 ---
 
 ## License
 
+Add your preferred license here, for example:
+
+```text
 MIT License
+```
 
 ---
 

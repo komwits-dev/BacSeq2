@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+<defs><linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f7fbff"/><stop offset="100%" stop-color="#eef6fc"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="8" dy="10" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.16"/></filter></defs>
+<rect width="1800" height="1120" fill="url(#bg)"/>
+<circle cx="120" cy="120" r="260" fill="#dbeafe"/><circle cx="1680" cy="120" r="300" fill="#e0f2fe"/><circle cx="1620" cy="1060" r="310" fill="#f0fdf4"/><circle cx="60" cy="1060" r="280" fill="#fef3c7"/>
+<text x="80" y="100" font-family="DejaVu Sans, Arial" font-size="58" font-weight="700" fill="#0f172a">BacSeq2 pipeline</text>
+<text x="84" y="145" font-family="DejaVu Sans, Arial" font-size="26" fill="#334155">Bacterial WGS analysis with AMR consensus, virulence, plasmid/MGE context, prophage, and interactive reporting</text>
+<rect x="80" y="210" width="270" height="140" rx="24" fill="#ffffff" stroke="#93c5fd" stroke-width="3" filter="url(#shadow)"/>
+<text x="215.0" y="255" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Input FASTQ</text>
+<text x="215.0" y="292" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">Illumina / ONT / PacBio</text>
+<text x="215.0" y="322" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">single or multiple isolates</text>
+<rect x="430" y="210" width="270" height="140" rx="24" fill="#eff6ff" stroke="#60a5fa" stroke-width="3" filter="url(#shadow)"/>
+<text x="565.0" y="255" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Read QC</text>
+<text x="565.0" y="292" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">FastQC / fastp / MultiQC</text>
+<text x="565.0" y="322" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">cleaned reads</text>
+<rect x="780" y="210" width="270" height="140" rx="24" fill="#ecfeff" stroke="#22d3ee" stroke-width="3" filter="url(#shadow)"/>
+<text x="915.0" y="255" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Assembly</text>
+<text x="915.0" y="292" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">SPAdes / Unicycler / Flye</text>
+<text x="915.0" y="322" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">final assembly FASTA</text>
+<rect x="1130" y="210" width="330" height="140" rx="24" fill="#f0fdf4" stroke="#22c55e" stroke-width="3" filter="url(#shadow)"/>
+<text x="1295.0" y="255" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Species ID</text>
+<text x="1295.0" y="292" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">Mash pre-check</text>
+<text x="1295.0" y="322" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">GTDB-Tk final call</text>
+<text x="1295.0" y="352" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">concordance flag</text>
+<line x1="350" y1="280" x2="430" y2="280" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<line x1="700" y1="280" x2="780" y2="280" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<line x1="1050" y1="280" x2="1130" y2="280" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<rect x="80" y="420" width="420" height="140" rx="24" fill="#fff7ed" stroke="#fb923c" stroke-width="3" filter="url(#shadow)"/>
+<text x="290.0" y="465" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Contamination review</text>
+<text x="290.0" y="502" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">Kraken2 + coverage + GC</text>
+<text x="290.0" y="532" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">candidate_contaminants.tsv</text>
+<text x="290.0" y="562" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">review-only by default</text>
+<rect x="560" y="420" width="420" height="140" rx="24" fill="#ffffff" stroke="#a78bfa" stroke-width="3" filter="url(#shadow)"/>
+<text x="770.0" y="465" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Genome annotation</text>
+<text x="770.0" y="502" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">Prokka / Bakta-ready</text>
+<text x="770.0" y="532" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">GFF / FAA / FNA outputs</text>
+<text x="770.0" y="562" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">gene catalogue</text>
+<rect x="1040" y="420" width="680" height="140" rx="24" fill="#fef2f2" stroke="#ef4444" stroke-width="3" filter="url(#shadow)"/>
+<text x="1380.0" y="465" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">AMR consensus layer</text>
+<text x="1380.0" y="502" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">AMRFinderPlus + CARD/RGI + ResFinder</text>
+<text x="1380.0" y="532" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">tool agreement / disagreement table</text>
+<text x="1380.0" y="562" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">optional AST comparison</text>
+<line x1="915" y1="350" x2="290" y2="420" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<line x1="915" y1="350" x2="770" y2="420" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<line x1="980" y1="490" x2="1040" y2="490" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+<rect x="80" y="640" width="330" height="155" rx="24" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="3" filter="url(#shadow)"/>
+<text x="245.0" y="685" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Virulence</text>
+<text x="245.0" y="722" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">VFDB / ABRicate</text>
+<text x="245.0" y="752" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">virulence factor table</text>
+<rect x="460" y="640" width="330" height="155" rx="24" fill="#ecfdf5" stroke="#10b981" stroke-width="3" filter="url(#shadow)"/>
+<text x="625.0" y="685" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Plasmids</text>
+<text x="625.0" y="722" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">MOB-suite + PlasmidFinder</text>
+<text x="625.0" y="752" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">replicon / relaxase / mobility</text>
+<rect x="840" y="640" width="330" height="155" rx="24" fill="#fefce8" stroke="#eab308" stroke-width="3" filter="url(#shadow)"/>
+<text x="1005.0" y="685" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">MGE context</text>
+<text x="1005.0" y="722" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">MobileElementFinder</text>
+<text x="1005.0" y="752" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">IntegronFinder / ISEScan</text>
+<rect x="1220" y="640" width="330" height="155" rx="24" fill="#eef2ff" stroke="#6366f1" stroke-width="3" filter="url(#shadow)"/>
+<text x="1385.0" y="685" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Prophage</text>
+<text x="1385.0" y="722" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">Phigaro</text>
+<text x="1385.0" y="752" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">optional geNomad/PhiSpy</text>
+<line x1="770" y1="560" x2="245" y2="640" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="770" y1="560" x2="625" y2="640" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="770" y1="560" x2="1005" y2="640" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="770" y1="560" x2="1385" y2="640" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<rect x="160" y="875" width="600" height="155" rx="24" fill="#ffffff" stroke="#14b8a6" stroke-width="3" filter="url(#shadow)"/>
+<text x="460.0" y="920" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Context-aware interpretation</text>
+<text x="460.0" y="957" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">AMR genes on plasmid/prophage/integron contigs</text>
+<text x="460.0" y="987" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">co-localization and risk flags</text>
+<text x="460.0" y="1017" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">avoid overclaiming phenotype</text>
+<rect x="900" y="875" width="820" height="155" rx="24" fill="#f8fafc" stroke="#0ea5e9" stroke-width="3" filter="url(#shadow)"/>
+<text x="1310.0" y="920" font-family="DejaVu Sans, Arial" font-size="23" font-weight="700" fill="#0f172a" text-anchor="middle">Interactive HTML report</text>
+<text x="1310.0" y="957" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">species + QC + contamination + AMR consensus</text>
+<text x="1310.0" y="987" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">VFDB + plasmid/MGE/prophage summaries</text>
+<text x="1310.0" y="1017" font-family="DejaVu Sans, Arial" font-size="21" fill="#0f172a" text-anchor="middle">sortable tables + downloadable TSV files</text>
+<line x1="245" y1="795" x2="310" y2="875" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="625" y1="795" x2="420" y2="875" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="1005" y1="795" x2="560" y2="875" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="1385" y1="795" x2="720" y2="875" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="760" y1="952" x2="900" y2="952" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+<line x1="1380" y1="560" x2="1310" y2="875" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+</svg>
