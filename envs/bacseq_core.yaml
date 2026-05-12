@@ -18,3 +18,6 @@ dependencies:
   - curl
   - aria2
   - tar
+  - rsync
+  - kraken2
+  - ncbi-amrfinderplus
